@@ -51,9 +51,14 @@ const currentPlaylistBadge = document.getElementById('current-playlist');
 const playBtn = document.getElementById('play-btn');
 const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
+/* New */
+const shareBtn = document.getElementById('share-btn"):
 const progressBar = document.getElementById('progress-bar');
 const currentTimeEl = document.getElementById('current-time');
 const durationEl = document.getElementById('duration');
+/* New */
+const iconPlay = document.getElementById('icon-play');
+const iconPause = document.getElementById('icon-pause');
 
 // === ФУНКЦИЯ SHUFFLE (алгоритм Фишера-Йетса) ===
 function createShuffledIndexes(length) {
@@ -129,10 +134,12 @@ function playTrack() {
     audio.play()
         .then(() => {
             isPlaying = true;
-            //
+            /*
             document.querySelector('.play-icon').style.display = 'none';
             document.querySelector('.play-icon').style.display = 'block';
             /* playBtn.textContent = '⏸'; */
+            /* Last add */
+            updatePlayPauseIcon();
             renderPlaylists();
         })
         .catch(error => {
@@ -144,10 +151,11 @@ function playTrack() {
 function pauseTrack() {
     audio.pause();
     isPlaying = false;
-    //
+    /* Last
     document.querySelector('.play-icon').style.display = 'block';
     document.querySelector('.play-icon').style.display = 'none';
     /* playBtn.textContent = '▶'; */
+    updatePlayPauseIcon();
     renderPlaylists();
 }
 
@@ -155,14 +163,16 @@ function pauseTrack() {
 function togglePlay() {
     if (isPlaying) {
         pauseTrack();
-        // 
+        /*
         document.querySelector('.play-icon').style.display = 'block';
-        document.querySelector('.play-icon').style.display = 'none';
+        document.querySelector('.play-icon').style.display = 'none'; 
+        */
     } else {
         playTrack();
-        //
+        /*
         document.querySelector('.play-icon').style.display = 'none';
         document.querySelector('.play-icon').style.display = 'block';
+        */
     }
 }
 
