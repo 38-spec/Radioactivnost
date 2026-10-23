@@ -71,6 +71,7 @@ function createShuffledIndexes(length) {
 }
 
 // === Рендер карточек плейлистов ===
+/*
 function renderPlaylists() {
     playlistsGrid.innerHTML = '';
     Object.keys(playlistsData).forEach(id => {
@@ -91,6 +92,35 @@ function renderPlaylists() {
         playlistsGrid.appendChild(card);
     });
 }
+*/
+function renderPlaylists() {
+    playlistsGrid.innerHTML = '';
+    Object.keys(playlistsData).forEach(id => {
+        const playlist = playlistsData[id];
+        const isActive = parseInt(id) === currentPlaylistId;
+        const card = document.createElement('div');
+        card.className = 'playlist-card' + (isActive ? ' active' : '');
+        card.dataset.id = id;
+        
+        // Определяем, какую иконку показать
+        const iconHtml = isActive && isPlaying 
+            ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="white"/></svg>`
+            : `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" fill="white"/></svg>`;
+        
+        card.innerHTML = `
+            <div class="playlist-card-content">
+                <div class="playlist-info">
+                    <div class="playlist-name">${playlist.name}</div>
+                    <div class="playlist-tracks-count">${playlist.tracks.length} треков</div>
+                </div>
+                <div class="playlist-play-icon">${iconHtml}</div>
+            </div>
+        `;
+        card.addEventListener('click', () => handlePlaylistClick(parseInt(id)));
+        playlistsGrid.appendChild(card);
+    });
+}
+
 
 // === Обработка клика по плейлисту ===
 function handlePlaylistClick(playlistId) {
@@ -134,11 +164,7 @@ function playTrack() {
     audio.play()
         .then(() => {
             isPlaying = true;
-            /*
-            document.querySelector('.play-icon').style.display = 'none';
-            document.querySelector('.play-icon').style.display = 'block';
-            /* playBtn.textContent = '⏸'; */
-            /* Last add */
+            
             updatePlayPauseIcon();
             renderPlaylists();
         })
