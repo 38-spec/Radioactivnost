@@ -1,191 +1,223 @@
-// Инициализация Telegram WebApp
+// Инициализация Telegram Web App
 const tg = window.Telegram.WebApp;
+tg.ready();
 tg.expand();
 
-// Настройка темы
-document.body.style.backgroundColor = tg.themeParams.bg_color || '#ffffff';
-document.body.style.color = tg.themeParams.text_color || '#000000';
+// Базовый URL Cloudflare R2
+const R2_BASE_URL = "https://pub-xxxxx.r2.dev"; // ЗАМЕНИ НА СВОЙ!
 
-// Данные плейлистов (замените URL на ваши файлы)
-const playlists = {
-    playlist1: [
-        { name: 'Autlo - XXX', url: 'https://pub-7c17c9badb4645aea8c6a386c544cca3.r2.dev/MaBroths/autlo_hpp.mp3' },
-        { name: 'Шаныч - Come and find me', url: 'https://pub-7c17c9badb4645aea8c6a386c544cca3.r2.dev/OldSchool/SiR%20-%20Hair%20Down.mp3' }
-    ],
-    playlist2: [
-        { name: 'Truffel the Phunky Phaqir - Bionic Muscle', url: 'https://pub-7c17c9badb4645aea8c6a386c544cca3.r2.dev/OldSchool/Truffel%20the%20Phunky%20Phaqir%20-%20Bionic%20Muscle.mp3' },
-        { name: 'SiR - Hair Down', url: 'https://example.com/track5.mp3' }
-    ]
+// Данные плейлистов
+const playlistsData = {
+    1: {
+        name: "Ma Hood",
+        tracks: [
+            { title: "Autlo", artist: "XXX", src: `${R2_BASE_URL}/playlist1/track1.mp3` },
+            { title: "Шаныч", artist: "Come and find me", src: `${R2_BASE_URL}/playlist1/track2.mp3` }
+            // Добавляй свои треки сюда
+        ]
+    },
+    2: {
+        name: "Старая Школа",
+        tracks: [
+            { title: "Truffel the Phunky", artist: "Bionic Muscle", src: `${R2_BASE_URL}/playlist2/track1.mp3` },
+            { title: "SiR", artist: "Hair Down", src: `${R2_BASE_URL}/playlist2/track2.mp3` }
+        ]
+    },
+    3: {
+        name: "Новая Школа",
+        tracks: [
+            // Добавь свои треки
+            { title: "Трек 1", artist: "Исполнитель", src: `${R2_BASE_URL}/playlist3/track1.mp3` }
+        ]
+    }
 };
 
-// Состояние плеера
-let currentPlaylist = null;
+// Состояние приложения
+let currentPlaylistId = null;
 let currentTrackIndex = 0;
 let isPlaying = false;
+let shuffledIndexes = []; // Массив индексов для shuffle без повторов
 
-// Создаем аудио элемент
-const audio = new Audio();
-audio.preload = 'auto';
-
-// Элементы DOM
-const playlist1El = document.getElementById('playlist1');
-const playlist2El = document.getElementById('playlist2');
-const playPauseBtn = document.getElementById('playPauseBtn');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const currentTrackName = document.getElementById('currentTrackName');
-const progressBar = document.getElementById('progressBar');
-const currentTimeEl = document.getElementById('currentTime');
+// DOM элементы
+const audio = document.getElementById('audio-player');
+const playlistsGrid = document.getElementById('playlists-grid');
+const nowPlaying = document.getElementById('now-playing');
+const controls = document.getElementById('controls');
+const progressContainer = document.getElementById('progress-container');
+const shuffleInfo = document.getElementById('shuffle-info');
+const currentTitle = document.getElementById('current-title');
+const currentArtist = document.getElementById('current-artist');
+const currentPlaylistBadge = document.getElementById('current-playlist');
+const playBtn = document.getElementById('play-btn');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+const progressBar = document.getElementById('progress-bar');
+const currentTimeEl = document.getElementById('current-time');
 const durationEl = document.getElementById('duration');
 
-// Функция для отображения плейлиста
-function renderPlaylist(playlistData, containerId, playlistName) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-    
-    playlistData.forEach((track, index) => {
-        const li = document.createElement('li');
-        li.textContent = track.name;
-        li.dataset.playlist = playlistName;
-        li.dataset.index = index;
-        
-        li.addEventListener('click', () => {
-            playTrack(playlistName, index);
-        });
-        
-        container.appendChild(li);
-    });
-}
-
-// Функция воспроизведения трека
-function playTrack(playlistName, index) {
-    currentPlaylist = playlistName;
-    currentTrackIndex = index;
-    
-    const track = playlists[playlistName][index];
-    audio.src = track.url;
-    audio.play();
-    isPlaying = true;
-    
-    currentTrackName.textContent = track.name;
-    playPauseBtn.textContent = '⏸️';
-    
-    // Обновляем активный трек в UI
-    updateActiveTrack();
-    
-    // Отправляем событие в Telegram
-    tg.HapticFeedback.impactOccurred('light');
-}
-
-// Обновление активного трека в UI
-function updateActiveTrack() {
-    document.querySelectorAll('.playlist li').forEach(li => {
-        li.classList.remove('active');
-    });
-    
-    const activeLi = document.querySelector(
-        `li[data-playlist="${currentPlaylist}"][data-index="${currentTrackIndex}"]`
-    );
-    if (activeLi) {
-        activeLi.classList.add('active');
+// === ФУНКЦИЯ SHUFFLE (алгоритм Фишера-Йетса) ===
+function createShuffledIndexes(length) {
+    const indexes = Array.from({ length }, (_, i) => i);
+    for (let i = indexes.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indexes[i], indexes[j]] = [indexes[j], indexes[i]];
     }
+    return indexes;
 }
 
-// Play/Pause
-playPauseBtn.addEventListener('click', () => {
-    if (!audio.src) {
-        // Если трек не выбран, запускаем первый трек из первого плейлиста
-        playTrack('playlist1', 0);
+// === Рендер карточек плейлистов ===
+function renderPlaylists() {
+    playlistsGrid.innerHTML = '';
+    Object.keys(playlistsData).forEach(id => {
+        const playlist = playlistsData[id];
+        const card = document.createElement('div');
+        card.className = 'playlist-card' + (parseInt(id) === currentPlaylistId ? ' active' : '');
+        card.dataset.id = id;
+        card.innerHTML = `
+            <div class="playlist-card-content">
+                <div class="playlist-info">
+                    <div class="playlist-name">${playlist.name}</div>
+                    <div class="playlist-tracks-count">${playlist.tracks.length} треков</div>
+                </div>
+                <div class="playlist-play-icon">${parseInt(id) === currentPlaylistId && isPlaying ? '⏸' : '▶'}</div>
+            </div>
+        `;
+        card.addEventListener('click', () => handlePlaylistClick(parseInt(id)));
+        playlistsGrid.appendChild(card);
+    });
+}
+
+// === Обработка клика по плейлисту ===
+function handlePlaylistClick(playlistId) {
+    // Если кликнули по тому же плейлисту, который играет — просто пауза/плей
+    if (currentPlaylistId === playlistId) {
+        togglePlay();
         return;
     }
     
+    // Иначе — запускаем новый плейлист
+    currentPlaylistId = playlistId;
+    // Создаем новый перемешанный массив индексов
+    shuffledIndexes = createShuffledIndexes(playlistsData[playlistId].tracks.length);
+    currentTrackIndex = 0; // Начинаем с первого трека в перемешанном порядке
+    
+    loadTrack();
+    playTrack();
+}
+
+// === Загрузка трека ===
+function loadTrack() {
+    const playlist = playlistsData[currentPlaylistId];
+    const track = playlist.tracks[shuffledIndexes[currentTrackIndex]];
+    
+    audio.src = track.src;
+    currentTitle.textContent = track.title;
+    currentArtist.textContent = track.artist;
+    currentPlaylistBadge.textContent = playlist.name;
+    
+    // Показываем элементы управления
+    nowPlaying.style.display = 'flex';
+    controls.style.display = 'flex';
+    progressContainer.style.display = 'flex';
+    shuffleInfo.style.display = 'block';
+    
+    renderPlaylists();
+}
+
+// === Воспроизведение ===
+function playTrack() {
+    audio.play()
+        .then(() => {
+            isPlaying = true;
+            playBtn.textContent = '⏸';
+            renderPlaylists();
+        })
+        .catch(error => {
+            console.error('Ошибка воспроизведения:', error);
+        });
+}
+
+// === Пауза ===
+function pauseTrack() {
+    audio.pause();
+    isPlaying = false;
+    playBtn.textContent = '▶';
+    renderPlaylists();
+}
+
+// === Переключение Play/Pause ===
+function togglePlay() {
     if (isPlaying) {
-        audio.pause();
-        playPauseBtn.textContent = '▶️';
-        isPlaying = false;
+        pauseTrack();
     } else {
-        audio.play();
-        playPauseBtn.textContent = '⏸️';
-        isPlaying = true;
+        playTrack();
     }
-    
-    tg.HapticFeedback.impactOccurred('light');
-});
+}
 
-// Previous track
-prevBtn.addEventListener('click', () => {
-    if (!currentPlaylist) return;
-    
-    currentTrackIndex--;
-    if (currentTrackIndex < 0) {
-        currentTrackIndex = playlists[currentPlaylist].length - 1;
-    }
-    
-    playTrack(currentPlaylist, currentTrackIndex);
-    tg.HapticFeedback.impactOccurred('light');
-});
-
-// Next track
-nextBtn.addEventListener('click', () => {
-    if (!currentPlaylist) return;
-    
+// === Следующий трек (следующий в перемешанном порядке) ===
+function nextTrack() {
+    const playlist = playlistsData[currentPlaylistId];
     currentTrackIndex++;
-    if (currentTrackIndex >= playlists[currentPlaylist].length) {
+    
+    // Если дошли до конца перемешанного массива — создаем новый
+    if (currentTrackIndex >= shuffledIndexes.length) {
+        shuffledIndexes = createShuffledIndexes(playlist.tracks.length);
         currentTrackIndex = 0;
     }
     
-    playTrack(currentPlaylist, currentTrackIndex);
-    tg.HapticFeedback.impactOccurred('light');
-});
+    loadTrack();
+    playTrack();
+}
 
-// Обновление прогресса
+// === Предыдущий трек ===
+function prevTrack() {
+    const playlist = playlistsData[currentPlaylistId];
+    currentTrackIndex--;
+    
+    // Если вышли за начало — переходим в конец
+    if (currentTrackIndex < 0) {
+        currentTrackIndex = shuffledIndexes.length - 1;
+    }
+    
+    loadTrack();
+    playTrack();
+}
+
+// === Обработчики кнопок ===
+playBtn.addEventListener('click', togglePlay);
+nextBtn.addEventListener('click', nextTrack);
+prevBtn.addEventListener('click', prevTrack);
+
+// === Прогресс-бар ===
 audio.addEventListener('timeupdate', () => {
     if (audio.duration) {
-        const progress = (audio.currentTime / audio.duration) * 100;
-        progressBar.value = progress;
+        progressBar.value = (audio.currentTime / audio.duration) * 100;
         currentTimeEl.textContent = formatTime(audio.currentTime);
     }
 });
 
-// Установка длительности
 audio.addEventListener('loadedmetadata', () => {
     durationEl.textContent = formatTime(audio.duration);
 });
 
-// Перемотка
-progressBar.addEventListener('input', (e) => {
+// Автоматический переход к следующему треку
+audio.addEventListener('ended', () => {
+    nextTrack();
+});
+
+progressBar.addEventListener('input', () => {
     if (audio.duration) {
-        const seekTime = (e.target.value / 100) * audio.duration;
-        audio.currentTime = seekTime;
+        audio.currentTime = (progressBar.value / 100) * audio.duration;
     }
 });
 
-// Автопереход на следующий трек
-audio.addEventListener('ended', () => {
-    nextBtn.click();
-});
-
-// Форматирование времени
+// === Форматирование времени ===
 function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    if (isNaN(seconds)) return '0:00';
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60);
+    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
 }
 
-// Обработка фонового воспроизведения
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden && isPlaying) {
-        // Пытаемся продолжить воспроизведение в фоне
-        audio.play().catch(err => {
-            console.log('Фоновое воспроизведение заблокировано:', err);
-        });
-    }
-});
-
-// Инициализация плейлистов
-renderPlaylist(playlists.playlist1, 'playlist1', 'playlist1');
-renderPlaylist(playlists.playlist2, 'playlist2', 'playlist2');
-
-// Уведомляем Telegram, что WebApp готов
-tg.ready();
-
+// === Инициализация ===
+renderPlaylists();
