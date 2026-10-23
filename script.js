@@ -219,5 +219,101 @@ function formatTime(seconds) {
     return `${min}:${sec < 10 ? '0' : ''}${sec}`;
 }
 
+// === КНОПКА ПОДЕЛИТЬСЯ ===
+const shareBtn = document.getElementById('share-btn');
+
+shareBtn.addEventListener('click', () => {
+    if (!currentPlaylistId) {
+        alert('Сначала выбери трек!');
+        return;
+    }
+    
+    const playlist = playlistsData[currentPlaylistId];
+    const track = playlist.tracks[shuffledIndexes[currentTrackIndex]];
+    const trackUrl = track.src;
+    const shareText = ` Сейчас играет: ${track.title} - ${track.artist}\n\nПлейлист: ${playlist.name}\n\nСлушай на Радиоактивность 📻`;
+    
+    // Проверяем, поддерживает ли устройство нативный шеринг
+    if (navigator.share) {
+        navigator.share({
+            title: 'Радиоактивность 📻',
+            text: shareText,
+            url: trackUrl
+        }).catch(err => {
+            console.log('Шеринг отменен:', err);
+        });
+    } else {
+        // Если нативный шеринг не поддерживается - показываем своё модальное окно
+        showShareModal(shareText, trackUrl);
+    }
+});
+
+// Функция показа модального окна шеринга
+function showShareModal(text, url) {
+    const modal = document.createElement('div');
+    modal.className = 'share-modal';
+    modal.innerHTML = `
+        <div class="share-modal-content">
+            <div class="share-modal-title">Поделиться треком</div>
+            <div class="share-options">
+                <button class="share-option" onclick="shareToTelegram('${text}', '${url}')">
+                    <span class="share-option-icon">✈️</span>
+                    <span>Отправить в Telegram</span>
+                </button>
+                <button class="share-option" onclick="copyToClipboard('${url}')">
+                    <span class="share-option-icon">📋</span>
+                    <span>Скопировать ссылку</span>
+                </button>
+            </div>
+            <button class="share-close" onclick="closeShareModal()">Закрыть</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+// Функция отправки в Telegram
+function shareToTelegram(text, url) {
+    const botUsername = 'твой_бот_username'; // ЗАМЕНИ НА ЮЗЕРНЕЙМ СВОЕГО БОТА (без @)
+    const shareUrl = `https://t.me/${botUsername}?text=${encodeURIComponent(text + '\n\n' + url)}`;
+    tg.openLink(shareUrl);
+    closeShareModal();
+}
+
+// Функция копирования ссылки
+function copyToClipboard(url) {
+    navigator.clipboard.writeText(url).then(() => {
+        showToast('Ссылка скопирована!');
+        closeShareModal();
+    }).catch(err => {
+        console.error('Ошибка копирования:', err);
+        alert('Не удалось скопировать ссылку');
+    });
+}
+
+// Функция закрытия модального окна
+function closeShareModal() {
+    const modal = document.querySelector('.share-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Функция показа уведомления
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+}
+
+// Закрытие модального окна по клику вне его
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('share-modal')) {
+        closeShareModal();
+    }
+});
+
+
 // === Инициализация ===
 renderPlaylists();
