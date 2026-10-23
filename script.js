@@ -176,7 +176,7 @@ function togglePlay() {
     }
 }
 
-/* // === Следующий трек (следующий в перемешанном порядке) ===
+// === Следующий трек (следующий в перемешанном порядке) ===
 function nextTrack() {
     const playlist = playlistsData[currentPlaylistId];
     currentTrackIndex++;
@@ -190,7 +190,7 @@ function nextTrack() {
     loadTrack();
     playTrack();
 }
-*/
+
 // === Предыдущий трек ===
 function prevTrack() {
     const playlist = playlistsData[currentPlaylistId];
@@ -242,7 +242,7 @@ function formatTime(seconds) {
 }
 
 // === КНОПКА ПОДЕЛИТЬСЯ ===
-const shareBtn = document.getElementById('share-btn');
+/* const shareBtn = document.getElementById('share-btn'); */
 
 shareBtn.addEventListener('click', () => {
     if (!currentPlaylistId) {
