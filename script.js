@@ -132,7 +132,7 @@ function playTrack() {
             //
             document.querySelector('.play-icon').style.display = 'none';
             document.querySelector('.play-icon').style.display = 'block';
-            playBtn.textContent = '⏸';
+            /* playBtn.textContent = '⏸'; */
             renderPlaylists();
         })
         .catch(error => {
