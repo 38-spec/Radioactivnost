@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Музыкальный плеер</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Radioactivnostь</h1>
+        
+        <div class="playlists">
+            <div class="playlist-section">
+                <h2>Ma Hood</h2>
+                <ul id="playlist1" class="playlist"></ul>
+            </div>
+            
+            <div class="playlist-section">
+                <h2>Старая Школа</h2>
+                <ul id="playlist2" class="playlist"></ul>
+            </div>
+
+		<div class="playlist-section">
+                <h2>Новая Школа</h2>
+                <ul id="playlist2" class="playlist"></ul>
+            </div>
+        </div>
+
+        <div class="player-controls">
+            <div class="current-track">
+                <span id="currentTrackName">Выберите трек</span>
+            </div>
+            
+            <div class="controls">
+                <button id="prevBtn" class="control-btn">⏮️</button>
+                <button id="playPauseBtn" class="control-btn main-btn">▶️</button>
+                <button id="nextBtn" class="control-btn">⏭️</button>
+            </div>
+            
+            <div class="progress-container">
+                <span id="currentTime">0:00</span>
+                <input type="range" id="progressBar" class="progress-bar" min="0" max="100" value="0">
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
