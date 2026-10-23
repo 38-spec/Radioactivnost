@@ -159,6 +159,17 @@ function pauseTrack() {
     renderPlaylists();
 }
 
+function updatePlayPauseIcon() {
+    if (isPlaying) {
+        iconPlay.style.display = 'none';
+        iconPause.style.display = 'block';
+    } else {
+        iconPlay.style.display = 'block';
+        iconPause.style.display = 'none';
+    }
+}
+
+
 // === Переключение Play/Pause ===
 function togglePlay() {
     if (isPlaying) {
