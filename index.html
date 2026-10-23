@@ -3,49 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Музыкальный плеер</title>
+    <title>Радиоактивность 📻</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Radioactivnostь</h1>
-        
-        <div class="playlists">
-            <div class="playlist-section">
-                <h2>Ma Hood</h2>
-                <ul id="playlist1" class="playlist"></ul>
-            </div>
-            
-            <div class="playlist-section">
-                <h2>Старая Школа</h2>
-                <ul id="playlist2" class="playlist"></ul>
-            </div>
+    <div class="app-container">
+        <header>
+            <h1>Радиоактивность 📻</h1>
+            <p class="subtitle">Выбери волну и слушай</p>
+        </header>
 
-		<div class="playlist-section">
-                <h2>Новая Школа</h2>
-                <ul id="playlist2" class="playlist"></ul>
-            </div>
+        <!-- Карточки плейлистов -->
+        <div class="playlists-grid" id="playlists-grid">
+            <!-- Карточки генерируются через JS -->
         </div>
 
-        <div class="player-controls">
-            <div class="current-track">
-                <span id="currentTrackName">Выберите трек</span>
+        <!-- Индикатор текущего трека -->
+        <div class="now-playing" id="now-playing" style="display: none;">
+            <div class="pulse-icon">🎵</div>
+            <div class="track-info">
+                <div class="track-title" id="current-title">—</div>
+                <div class="track-artist" id="current-artist">—</div>
             </div>
-            
-            <div class="controls">
-                <button id="prevBtn" class="control-btn">⏮️</button>
-                <button id="playPauseBtn" class="control-btn main-btn">▶️</button>
-                <button id="nextBtn" class="control-btn">⏭️</button>
+            <div class="playlist-badge" id="current-playlist">—</div>
+        </div>
+
+        <!-- Элементы управления -->
+        <div class="controls" id="controls" style="display: none;">
+            <button class="control-btn" id="prev-btn">⏮</button>
+            <button class="control-btn main-btn" id="play-btn">⏸</button>
+            <button class="control-btn" id="next-btn"></button>
+        </div>
+
+        <!-- Прогресс-бар -->
+        <div class="progress-container" id="progress-container" style="display: none;">
+            <span class="time" id="current-time">0:00</span>
+            <div class="progress-bar-wrap">
+                <input type="range" id="progress-bar" value="0" max="100" min="0">
             </div>
-            
-            <div class="progress-container">
-                <span id="currentTime">0:00</span>
-                <input type="range" id="progressBar" class="progress-bar" min="0" max="100" value="0">
-                <span id="duration">0:00</span>
-            </div>
+            <span class="time" id="duration">0:00</span>
+        </div>
+
+        <!-- Shuffle индикатор -->
+        <div class="shuffle-info" id="shuffle-info" style="display: none;">
+            🔀 Случайный порядок без повторов
         </div>
     </div>
 
+    <audio id="audio-player" preload="auto"></audio>
     <script src="script.js"></script>
 </body>
+</html>
