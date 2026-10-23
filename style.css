@@ -241,6 +241,14 @@ header h1 {
     justify-content: center;
     /* Добавил */
     box-shadow: 0 4px 15px  rgba(256, 107, 53, 0.4);
+    /* Добавил */
+    border: none;
+    cursor: pointer;
+    transition: transform 0,15s ease;
+}
+/* add */
+.main-btn svg {
+    fill: white;
 }
 /* add */
 .main-btn:active {
