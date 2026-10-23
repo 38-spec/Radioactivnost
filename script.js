@@ -11,8 +11,8 @@ const playlistsData = {
     1: {
         name: "Ma Hood",
         tracks: [
-            { title: "Autlo", artist: "XXX", src: `${R2_BASE_URL}/playlist1/track1.mp3` },
-            { title: "Шаныч", artist: "Come and find me", src: `${R2_BASE_URL}/playlist1/track2.mp3` }
+            { title: "Autlo", artist: "XXX", src: `${R2_BASE_URL} https://pub-7c17c9badb4645aea8c6a386c544cca3.r2.dev/MaBroths/autlo_hpp.mp3` },
+            { title: "Шаныч", artist: "Come and find me", src: `${R2_BASE_URL} https://pub-7c17c9badb4645aea8c6a386c544cca3.r2.dev/MaBroths/Come%26findme_demo01.mp3` }
             // Добавляй свои треки сюда
         ]
     },
