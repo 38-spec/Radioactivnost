@@ -19,8 +19,8 @@ const playlistsData = {
     2: {
         name: "Старая Школа",
         tracks: [
-            { title: "Truffel the Phunky", artist: "Bionic Muscle", src: `${R2_BASE_URL}/playlist2/track1.mp3` },
-            { title: "SiR", artist: "Hair Down", src: `${R2_BASE_URL}/playlist2/track2.mp3` }
+            { title: "Truffel the Phunky", artist: "Bionic Muscle", src: `${R2_BASE_URL}/OldSchool/Truffel%20the%20Phunky%20Phaqir%20-%20Bionic%20Muscle.mp3` },
+            { title: "SiR", artist: "Hair Down", src: `${R2_BASE_URL}/OldSchool/SiR%20-%20Hair%20Down.mp3` }
         ]
     },
     3: {
