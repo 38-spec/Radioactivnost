@@ -52,7 +52,7 @@ const playBtn = document.getElementById('play-btn');
 const prevBtn = document.getElementById('prev-btn');
 /*const nextBtn = document.getElementById('next-btn');
 /* New */
-const shareBtn = document.getElementById('share-btn'):
+const shareBtn = document.getElementById('share-btn');
 const progressBar = document.getElementById('progress-bar');
 const currentTimeEl = document.getElementById('current-time');
 const durationEl = document.getElementById('duration');
