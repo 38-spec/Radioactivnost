@@ -4,7 +4,7 @@ tg.ready();
 tg.expand();
 
 // Базовый URL Cloudflare R2
-const R2_BASE_URL = "https://pub-xxxxx.r2.dev"; // ЗАМЕНИ НА СВОЙ!
+const R2_BASE_URL = "https://pub-7c17c9badb4645aea8c6a386c544cca3.r2.dev"; // ЗАМЕНИ НА СВОЙ!
 
 // Данные плейлистов
 const playlistsData = {
