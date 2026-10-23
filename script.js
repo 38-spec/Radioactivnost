@@ -273,7 +273,7 @@ function showShareModal(text, url) {
 
 // Функция отправки в Telegram
 function shareToTelegram(text, url) {
-    const botUsername = 'твой_бот_username'; // ЗАМЕНИ НА ЮЗЕРНЕЙМ СВОЕГО БОТА (без @)
+    const botUsername = 'radioactivnost_bot'; // ЗАМЕНИ НА ЮЗЕРНЕЙМ СВОЕГО БОТА (без @)
     const shareUrl = `https://t.me/${botUsername}?text=${encodeURIComponent(text + '\n\n' + url)}`;
     tg.openLink(shareUrl);
     closeShareModal();
