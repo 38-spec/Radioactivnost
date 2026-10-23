@@ -84,7 +84,7 @@ function renderPlaylists() {
                     <div class="playlist-name">${playlist.name}</div>
                     <div class="playlist-tracks-count">${playlist.tracks.length} треков</div>
                 </div>
-                <div class="playlist-play-icon">${parseInt(id) === currentPlaylistId && isPlaying ? '⏸' : '▶'}</div>
+            <div class="playlist-play-icon">${parseInt(id) === currentPlaylistId ? '⏸' : '▶'}
             </div>
         `;
         card.addEventListener('click', () => handlePlaylistClick(parseInt(id)));
