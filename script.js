@@ -154,7 +154,7 @@ function togglePlay() {
     }
 }
 
-// === Следующий трек (следующий в перемешанном порядке) ===
+/* // === Следующий трек (следующий в перемешанном порядке) ===
 function nextTrack() {
     const playlist = playlistsData[currentPlaylistId];
     currentTrackIndex++;
@@ -168,7 +168,7 @@ function nextTrack() {
     loadTrack();
     playTrack();
 }
-
+*/
 // === Предыдущий трек ===
 function prevTrack() {
     const playlist = playlistsData[currentPlaylistId];
@@ -185,7 +185,7 @@ function prevTrack() {
 
 // === Обработчики кнопок ===
 playBtn.addEventListener('click', togglePlay);
-nextBtn.addEventListener('click', nextTrack);
+/* nextBtn.addEventListener('click', nextTrack); */
 prevBtn.addEventListener('click', prevTrack);
 
 // === Прогресс-бар ===
