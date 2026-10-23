@@ -151,10 +151,6 @@ function playTrack() {
 function pauseTrack() {
     audio.pause();
     isPlaying = false;
-    /* Last
-    document.querySelector('.play-icon').style.display = 'block';
-    document.querySelector('.play-icon').style.display = 'none';
-    /* playBtn.textContent = '▶'; */
     updatePlayPauseIcon();
     renderPlaylists();
 }
@@ -174,16 +170,8 @@ function updatePlayPauseIcon() {
 function togglePlay() {
     if (isPlaying) {
         pauseTrack();
-        /*
-        document.querySelector('.play-icon').style.display = 'block';
-        document.querySelector('.play-icon').style.display = 'none'; 
-        */
     } else {
         playTrack();
-        /*
-        document.querySelector('.play-icon').style.display = 'none';
-        document.querySelector('.play-icon').style.display = 'block';
-        */
     }
 }
 
