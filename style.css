@@ -210,55 +210,26 @@ header h1 {
 }
 
 .control-btn {
-    /* background: none; */
-    border: none;
-    /* color: var(--text-color);
-    font-size: 28px; */
-    cursor: pointer;
-    /* padding: 8px;
-    transition: transform 0.15s ease;
-    /* Добавил */
     display: flex;
-    align-items: centre;
-    justify-content: centre;
-    /* width: 56px;
-    height: 56px; */
-    /* add last */
-    transition: transform 0,15s ease;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
     padding: 0;
+    border: none;
+    cursor: pointer; 
 }
 
 .control-btn:active {
     transform: scale(0.92);
 }
 
-/*
-.main-btn {
-    width: 72px; /* was 64*/ 
-    /* height: 72px; /* was 64*/
-    /* border-radius: 50%;
-    background-color: var(--button-color);
-    color: white;
-    /* font-size: 28px; /* was 24*/
-    /* display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Добавил */
-    /* box-shadow: 0 4px 15px  rgba(256, 107, 53, 0.4);
-    /* Добавил */
-    /* border: none;
-    cursor: pointer;
-    transition: transform 0,15s ease;
-} 
-
-/* add 
-.main-btn svg {
-    fill: white;
+.control-btn svg {
+    width: 24px;
+    height: 24px;
+    display: blocke;
 }
-/* add 
-.main-btn:active {
-    transform: scale(0.95);
-    */
 
 /* Крайнее добавление */
 .side-btn { 
@@ -268,17 +239,30 @@ header h1 {
     background-color: var(--secondary-bg);
 }
 
+.side-btn svg {
+    display: block;
+    margin: auto;
+}
+
 .side-btn:hover {
     background-color: #2a2a2e;
 }
 
 /* Главная кнопка Play/Pause */
 .main-btn {
-    width: 72px;
-    height: 72px;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: centre;
     border-radius: 50%;
     background-color: var(--secondary-bg);
     box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5);
+}
+
+.main-btn svg {
+    width: 32px;
+    height: 32px;
 }
 
 .main-btn:hover {
