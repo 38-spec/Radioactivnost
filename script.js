@@ -70,29 +70,6 @@ function createShuffledIndexes(length) {
     return indexes;
 }
 
-// === Рендер карточек плейлистов ===
-/*
-function renderPlaylists() {
-    playlistsGrid.innerHTML = '';
-    Object.keys(playlistsData).forEach(id => {
-        const playlist = playlistsData[id];
-        const card = document.createElement('div');
-        card.className = 'playlist-card' + (parseInt(id) === currentPlaylistId ? ' active' : '');
-        card.dataset.id = id;
-        card.innerHTML = `
-            <div class="playlist-card-content">
-                <div class="playlist-info">
-                    <div class="playlist-name">${playlist.name}</div>
-                    <div class="playlist-tracks-count">${playlist.tracks.length} треков</div>
-                </div>
-            <div class="playlist-play-icon">${parseInt(id) === currentPlaylistId ? '⏸' : '▶'}
-            </div>
-        `;
-        card.addEventListener('click', () => handlePlaylistClick(parseInt(id)));
-        playlistsGrid.appendChild(card);
-    });
-}
-*/
 function renderPlaylists() {
     playlistsGrid.innerHTML = '';
     Object.keys(playlistsData).forEach(id => {
