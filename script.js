@@ -50,7 +50,7 @@ const currentArtist = document.getElementById('current-artist');
 const currentPlaylistBadge = document.getElementById('current-playlist');
 const playBtn = document.getElementById('play-btn');
 const prevBtn = document.getElementById('prev-btn');
-const nextBtn = document.getElementById('next-btn');
+/*const nextBtn = document.getElementById('next-btn');
 /* New */
 const shareBtn = document.getElementById('share-btn"):
 const progressBar = document.getElementById('progress-bar');
