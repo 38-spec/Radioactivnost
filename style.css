@@ -289,3 +289,135 @@ header h1 {
     color: var(--hint-color);
     padding: 8px;
 }
+
+/* Кнопка Поделиться */
+.share-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 12px;
+    transition: all 0.2s ease;
+}
+
+.share-btn:hover {
+    background-color: var(--button-color);
+    color: white;
+    transform: scale(1.1);
+}
+
+.share-btn:active {
+    transform: scale(0.95);
+}
+
+/* Модальное окно шеринга */
+.share-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.share-modal-content {
+    background-color: var(--secondary-bg);
+    border-radius: 20px;
+    padding: 24px;
+    max-width: 90%;
+    width: 400px;
+    animation: slideUp 0.3s ease;
+}
+
+.share-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.share-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.share-option {
+    background-color: var(--bg-color);
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    color: var(--text-color);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+}
+
+.share-option:hover {
+    background-color: var(--button-color);
+    color: white;
+}
+
+.share-option-icon {
+    font-size: 24px;
+}
+
+.share-close {
+    margin-top: 16px;
+    width: 100%;
+    background: none;
+    border: 1px solid var(--hint-color);
+    border-radius: 12px;
+    padding: 12px;
+    color: var(--hint-color);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.share-close:hover {
+    background-color: var(--bg-color);
+}
+
+/* Уведомление о копировании */
+.toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--button-color);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 1001;
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes toastOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
