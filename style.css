@@ -235,7 +235,7 @@ header h1 {
     border-radius: 50%;
     background-color: var(--button-color);
     color: white;
-    font-size: 28px; /* was 24*/
+    /* font-size: 28px; /* was 24*/
     display: flex;
     align-items: center;
     justify-content: center;
