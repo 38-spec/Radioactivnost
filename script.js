@@ -6,7 +6,7 @@ tg.expand();
 // Базовый URL Cloudflare R2
 const R2_BASE_URL = "https://pub-7c17c9badb4645aea8c6a386c544cca3.r2.dev";
 
-// === НОВОЕ: ВСТАВЬТЕ СЮДА ВАШ SHEET_ID ===
+// === SHEET_ID ===
 const SHEET_ID = "1dyard1Bb_7Vwmi_cVj2rEqcDNMzM9LPngohSoXH7JTQ"; 
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
@@ -24,7 +24,6 @@ const playlistsData = {
     },
     2: {
         name: "Старая Школа",
-        // ВСТАВЬТЕ СЮДА ССЫЛКУ НА СПОТИФАЙ ПЛЕЙЛИСТ "СТАРАЯ ШКОЛА"
         spotifyUrl: "https://open.spotify.com/playlist/4i0gEbdeQ0je5ANjmQCuGA?si=vjbSRnRDSkuVNkeYOKiYQg&utm_source=copy-link&pi=gCo5u7wdRyGj8", 
         tracks: [
             { title: "Truffel the Phunky", artist: "Bionic Muscle", src: `${R2_BASE_URL}/OldSchool/Truffel%20the%20Phunky%20Phaqir%20-%20Bionic%20Muscle.mp3` },
@@ -33,7 +32,6 @@ const playlistsData = {
     },
     3: {
         name: "Новая Школа",
-        // ВСТАВЬТЕ СЮДА ССЫЛКУ НА СПОТИФАЙ ПЛЕЙЛИСТ "НОВАЯ ШКОЛА"
         spotifyUrl: "https://open.spotify.com/playlist/3XOU9kzckIsCcY02opnNf4?si=Petq-_BsQiqFv_6jfHFATA&utm_source=copy-link&pi=g3Bgrfl0Sn-02",
         tracks: [
             { title: "Трек 1", artist: "Исполнитель", src: `${R2_BASE_URL}/playlist3/track1.mp3` }
@@ -76,14 +74,21 @@ function createShuffledIndexes(length) {
     return indexes;
 }
 
-// === ОТРИСОВКА ПЛЕЙЛИСТОВ ===
+// === ОТРИСОВКА ПЛЕЙЛИСТОВ (ИСПРАВЛЕНА) ===
 function renderPlaylists() {
-    playlistsGrid.innerHTML = '';
+    if (!playlistsGrid) return;
+    playlistsGrid.innerHTML = ''; // Полная очистка
+    
     Object.keys(playlistsData).forEach(id => {
         const playlist = playlistsData[id];
-        const isActive = parseInt(id) === currentPlaylistId;
+        // Строгое численное сравнение
+        const isActive = Number(id) === Number(currentPlaylistId);
+        
         const card = document.createElement('div');
-        card.className = 'playlist-card' + (isActive ? ' active' : '');
+        card.className = 'playlist-card'; // Сбрасываем классы
+        if (isActive) {
+            card.classList.add('active'); // Добавляем ТОЛЬКО активному элементу
+        }
         card.dataset.id = id;
         
         const iconHtml = isActive && isPlaying 
@@ -99,7 +104,7 @@ function renderPlaylists() {
                 <div class="playlist-play-icon">${iconHtml}</div>
             </div>
         `;
-        card.addEventListener('click', () => handlePlaylistClick(parseInt(id)));
+        card.addEventListener('click', () => handlePlaylistClick(Number(id)));
         playlistsGrid.appendChild(card);
     });
 }
@@ -135,7 +140,7 @@ function loadTrack() {
     renderPlaylists();
 }
 
-// === Воспроизведение ===
+// === Воспроизведение и Пауза ===
 function playTrack() {
     audio.play().then(() => {
         isPlaying = true;
@@ -146,7 +151,6 @@ function playTrack() {
     });
 }
 
-// === Пауза ===
 function pauseTrack() {
     audio.pause();
     isPlaying = false;
@@ -164,7 +168,6 @@ function updatePlayPauseIcon() {
     }
 }
 
-// === Переключение Play/Pause ===
 function togglePlay() {
     if (isPlaying) {
         pauseTrack();
@@ -173,7 +176,7 @@ function togglePlay() {
     }
 }
 
-// === Следующий трек ===
+// === Переключение треков ===
 function nextTrack() {
     const playlist = playlistsData[currentPlaylistId];
     currentTrackIndex++;
@@ -185,7 +188,6 @@ function nextTrack() {
     playTrack();
 }
 
-// === Предыдущий трек ===
 function prevTrack() {
     currentTrackIndex--;
     if (currentTrackIndex < 0) {
@@ -221,7 +223,6 @@ progressBar.addEventListener('input', () => {
     }
 });
 
-// === Форматирование времени ===
 function formatTime(seconds) {
     if (isNaN(seconds)) return '0:00';
     const min = Math.floor(seconds / 60);
@@ -230,31 +231,38 @@ function formatTime(seconds) {
 }
 
 // =========================================================================
-// === НОВЫЙ ФУНКЦИОНАЛ: ЗАГРУЗКА ИЗ GOOGLE ТАБЛИЦЫ И КНОПКА ПОДЕЛИТЬСЯ ===
+// === ЗАГРУЗКА ИЗ GOOGLE ТАБЛИЦЫ И КНОПКА ПОДЕЛИТЬСЯ (ИСПРАВЛЕНО) ===
 // =========================================================================
 
-// 1. Загрузка и парсинг таблицы
+// 1. Загрузка и парсинг таблицы с УМНЫМ распознаванием колонок
 async function loadArtistLinks() {
     try {
         const response = await fetch(SHEET_URL);
         const text = await response.text();
         
-        // Google отдает данные с небольшим "мусором" по краям, очищаем его
         const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonStr);
         
-        // Получаем названия колонок
         const cols = data.table.cols.map(c => c.label);
         
-        // Преобразуем строки таблицы в удобные объекты
         artistLinksData = data.table.rows.map(row => {
             const obj = {};
             row.c.forEach((cell, index) => {
-                const colName = cols[index];
-                obj[colName] = cell && cell.v ? String(cell.v) : "";
+                let colName = cols[index] ? String(cols[index]).trim().toLowerCase() : "";
+                
+                // Умное определение колонок по ключевым словам (регистр не важен)
+                if (colName.includes('playlist') || colName === 'id') colName = 'playlistid';
+                else if (colName.includes('insta')) colName = 'instagram';
+                else if (colName.includes('yandex') || colName.includes('яндекс')) colName = 'yandex';
+                else if (colName.includes('spotify')) colName = 'spotify';
+                else if (colName.includes('title') || colName.includes('название') || colName.includes('трек')) colName = 'title';
+                else if (colName.includes('artist') || colName.includes('исполнитель')) colName = 'artist';
+                else colName = colName.replace(/\s+/g, '_'); // для любых других колонок
+                
+                obj[colName] = cell && cell.v ? String(cell.v).trim() : "";
             });
-            // Преобразуем ID плейлиста в число
-            if (obj.playlistId) obj.playlistId = parseInt(obj.playlistId);
+            
+            if (obj.playlistid) obj.playlistId = parseInt(obj.playlistid);
             return obj;
         });
         
@@ -279,8 +287,8 @@ function getLinksForCurrentTrack() {
             item.artist && item.artist.trim().toLowerCase() === searchArtist;
     });
 
-    // Если не нашли, возвращаем пустые строки (они будут отфильтрованы позже)
-    return linkData || { instagram: "", yandex: "", spotify: "" };
+    // Если не нашли, возвращаем пустые строки (они будут отфильтрованы в модалке)
+    return linkData || { instagram: "", yandex: "", spotify: "", title: "", artist: "" };
 }
 
 // 3. Обработчик кнопки "Поделиться"
@@ -290,19 +298,20 @@ shareBtn.addEventListener('click', () => {
         return;
     }
     
+    // ИСПРАВЛЕНИЕ БАГА: Принудительно перерисовываем плейлисты перед открытием модалки,
+    // чтобы сбросить любые CSS-артефакты или "залипший" фокус
+    renderPlaylists();
+    
     const links = getLinksForCurrentTrack();
     
     if (currentPlaylistId === 1) {
-        // Для Ma Broths: передаем все возможные ссылки. 
-        // Функция showLinkModal САМА уберет те, где ссылка пустая!
         showLinkModal("Перейти к исполнителю", [
             { icon: "📸", text: "Instagram", url: links.instagram },
-            { icon: "🎵", text: "Яндекс Музыка", url: links.yandex }
+            { icon: "🎵", text: "Яндекс Музыка", url: links.yandex },
+            { icon: "🎧", text: "Spotify", url: links.spotify }
         ]);
     } else {
-        // Для плейлистов 2 и 3: берем индивидуальную ссылку из объекта playlistsData
         const playlist = playlistsData[currentPlaylistId];
-        
         showLinkModal("Слушать плейлист", [
             { icon: "🎧", text: "Открыть в Spotify", url: playlist.spotifyUrl }
         ]);
@@ -313,8 +322,6 @@ shareBtn.addEventListener('click', () => {
 function showLinkModal(title, options) {
     closeShareModal();
 
-    // === ВОТ ЗДЕСЬ МАГИЯ: ===
-    // Эта строка оставляет в массиве только те кнопки, у которых url НЕ пустой и НЕ состоит из пробелов
     const validOptions = options.filter(opt => opt.url && opt.url.trim() !== "");
 
     if (validOptions.length === 0) {
@@ -344,7 +351,7 @@ function showLinkModal(title, options) {
     document.body.appendChild(modal);
 }
 
-// 5. Открытие ссылки
+// 5. Открытие ссылки и закрытие модалки
 function openExternalLink(url) {
     if (url && url.trim() !== "") {
         tg.openLink(url); 
@@ -354,7 +361,12 @@ function openExternalLink(url) {
 
 function closeShareModal() {
     const modal = document.querySelector('.share-modal');
-    if (modal) modal.remove();
+    if (modal) {
+        modal.remove();
+        // ИСПРАВЛЕНИЕ БАГА: Принудительно перерисовываем плейлисты при закрытии.
+        // Это гарантированно убирает визуальный баг с "выбранными" карточками.
+        renderPlaylists();
+    }
 }
 
 function showToast(message) {
