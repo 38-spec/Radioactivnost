@@ -302,4 +302,93 @@ function getLinksForCurrentTrack() {
     return linkData || { instagram: "", yandex: "", spotify: "" };
 }
 
-// ... (остальной код без изменений) ...
+// 3. Обновленный клик по кнопке "Поделиться"
+shareBtn.addEventListener('click', () => {
+    if (!currentPlaylistId) {
+        showToast('Сначала выбери трек!');
+        return;
+    }
+    
+    const links = getLinksForCurrentTrack();
+    
+    if (currentPlaylistId === 1) {
+        showLinkModal("Перейти к исполнителю", [
+            { icon: "", text: "Instagram", url: links.instagram },
+            { icon: "🎵", text: "Яндекс Музыка", url: links.yandex }
+        ]);
+    } else {
+        showLinkModal("Слушать плейлист", [
+            { icon: "🎧", text: "Открыть в Spotify", url: links.spotify }
+        ]);
+    }
+});
+
+// 4. Универсальное модальное окно
+function showLinkModal(title, options) {
+    closeShareModal();
+
+    const validOptions = options.filter(opt => opt.url && opt.url.trim() !== "");
+
+    if (validOptions.length === 0) {
+        showToast('Для этого трека ссылки еще не добавлены в таблицу');
+        return;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'share-modal'; 
+    
+    const optionsHtml = validOptions.map(opt => `
+        <button class="share-option" onclick="openExternalLink('${opt.url}')">
+            <span class="share-option-icon">${opt.icon}</span>
+            <span>${opt.text}</span>
+        </button>
+    `).join('');
+
+    modal.innerHTML = `
+        <div class="share-modal-content">
+            <div class="share-modal-title">${title}</div>
+            <div class="share-options">
+                ${optionsHtml}
+            </div>
+            <button class="share-close" onclick="closeShareModal()">Закрыть</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+// 5. Открытие ссылки
+function openExternalLink(url) {
+    if (url && url.trim() !== "") {
+        tg.openLink(url); 
+    }
+    closeShareModal();
+}
+
+function closeShareModal() {
+    const modal = document.querySelector('.share-modal');
+    if (modal) modal.remove();
+}
+
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+}
+
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('share-modal')) closeShareModal();
+});
+
+// =========================================================================
+// === ИНИЦИАЛИЗАЦИЯ ===
+// =========================================================================
+
+async function initApp() {
+    await loadArtistLinks();
+    renderPlaylists();
+}
+
+initApp();
+
