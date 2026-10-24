@@ -229,8 +229,6 @@ function formatTime(seconds) {
 // === НОВЫЙ ФУНКЦИОНАЛ: ЗАГРУЗКА ИЗ GOOGLE ТАБЛИЦЫ И КНОПКА ПОДЕЛИТЬСЯ ===
 // =========================================================================
 
-// ... (начало кода без изменений до функции loadArtistLinks) ...
-
 // 1. Загрузка и парсинг таблицы
 async function loadArtistLinks() {
     try {
@@ -269,7 +267,6 @@ async function loadArtistLinks() {
         console.error("❌ Ошибка загрузки Google Таблицы:", error);
     }
 }
-
 
 // 2. Поиск нужных ссылок для текущего играющего трека
 function getLinksForCurrentTrack() {
@@ -319,96 +316,6 @@ shareBtn.addEventListener('click', () => {
     } else {
         // Для остальных плейлистов: берем ссылку из таблицы, 
         // а если ячейка пустая, подставляем общую ссылку на плейлист
-        const defaultSpotifyUrl = "// 3. Обновленный клик по кнопке "Поделиться"
-shareBtn.addEventListener('click', () => {
-    if (!currentPlaylistId) {
-        showToast('Сначала выбери трек!');
-        return;
-    }
-    
-    const links = getLinksForCurrentTrack();
-    
-    if (currentPlaylistId === 1) {
-        // Для Ma Broths: показываем только те ссылки, что есть в таблице
-        showLinkModal("Перейти к исполнителю", [
-            { icon: "📸", text: "Instagram", url: links.instagram },
-            { icon: "🎵", text: "Яндекс Музыка", url: links.yandex }
-        ]);
-    } else {
-        // Для остальных плейлистов: берем ссылку из таблицы, 
-        // а если ячейка пустая, подставляем общую ссылку на плейлист
-        const defaultSpotifyUrl = "// 3. Обновленный клик по кнопке "Поделиться"
-shareBtn.addEventListener('click', () => {
-    if (!currentPlaylistId) {
-        showToast('Сначала выбери трек!');
-        return;
-    }
-    
-    const links = getLinksForCurrentTrack();
-    
-    if (currentPlaylistId === 1) {
-        // Для Ma Broths: показываем только те ссылки, что есть в таблице
-        showLinkModal("Перейти к исполнителю", [
-            { icon: "📸", text: "Instagram", url: links.instagram },
-            { icon: "🎵", text: "Яндекс Музыка", url: links.yandex }
-        ]);
-    } else {
-        // Для остальных плейлистов: берем ссылку из таблицы, 
-        // а если ячейка пустая, подставляем общую ссылку на плейлист
-        const defaultSpotifyUrl = "// 3. Обновленный клик по кнопке "Поделиться"
-shareBtn.addEventListener('click', () => {
-    if (!currentPlaylistId) {
-        showToast('Сначала выбери трек!');
-        return;
-    }
-    
-    const links = getLinksForCurrentTrack();
-    
-    if (currentPlaylistId === 1) {
-        // Для Ma Broths: показываем только те ссылки, что есть в таблице
-        showLinkModal("Перейти к исполнителю", [
-            { icon: "📸", text: "Instagram", url: links.instagram },
-            { icon: "🎵", text: "Яндекс Музыка", url: links.yandex }
-        ]);
-    } else {
-        // Для остальных плейлистов: берем ссылку из таблицы, 
-        // а если ячейка пустая, подставляем общую ссылку на плейлист
-        const defaultSpotifyUrl = "// 3. Обновленный клик по кнопке "Поделиться"
-shareBtn.addEventListener('click', () => {
-    if (!currentPlaylistId) {
-        showToast('Сначала выбери трек!');
-        return;
-    }
-    
-    const links = getLinksForCurrentTrack();
-    
-    if (currentPlaylistId === 1) {
-        // Для Ma Broths: показываем только те ссылки, что есть в таблице
-        showLinkModal("Перейти к исполнителю", [
-            { icon: "📸", text: "Instagram", url: links.instagram },
-            { icon: "🎵", text: "Яндекс Музыка", url: links.yandex }
-        ]);
-    } else {
-        // Для остальных плейлистов: берем ссылку из таблицы, 
-        // а если ячейка пустая, подставляем общую ссылку на плейлист
-        const defaultSpotifyUrl = "// 3. Обновленный клик по кнопке "Поделиться"
-shareBtn.addEventListener('click', () => {
-    if (!currentPlaylistId) {
-        showToast('Сначала выбери трек!');
-        return;
-    }
-    
-    const links = getLinksForCurrentTrack();
-    
-    if (currentPlaylistId === 1) {
-        // Для Ma Broths: показываем только те ссылки, что есть в таблице
-        showLinkModal("Перейти к исполнителю", [
-            { icon: "📸", text: "Instagram", url: links.instagram },
-            { icon: "🎵", text: "Яндекс Музыка", url: links.yandex }
-        ]);
-    } else {
-        // Для остальных плейлистов: берем ссылку из таблицы, 
-        // а если ячейка пустая, подставляем общую ссылку на плейлист
         const defaultSpotifyUrl = "https://open.spotify.com/playlist/4i0gEbdeQ0je5ANjmQCuGA?si=JrC1U_CyRbS3N9U6BtxhMQ&utm_source=copy-link&pi=a2MBSfKMT3Kfi"; 
         
         const finalSpotifyUrl = links.spotify || defaultSpotifyUrl;
@@ -418,52 +325,6 @@ shareBtn.addEventListener('click', () => {
         ]);
     }
 });
-"; 
-        
-        const finalSpotifyUrl = links.spotify || defaultSpotifyUrl;
-
-        showLinkModal("Слушать плейлист", [
-            { icon: "🎧", text: "Открыть в Spotify", url: finalSpotifyUrl }
-        ]);
-    }
-});
-"; 
-        
-        const finalSpotifyUrl = links.spotify || defaultSpotifyUrl;
-
-        showLinkModal("Слушать плейлист", [
-            { icon: "🎧", text: "Открыть в Spotify", url: finalSpotifyUrl }
-        ]);
-    }
-});
-"; 
-        
-        const finalSpotifyUrl = links.spotify || defaultSpotifyUrl;
-
-        showLinkModal("Слушать плейлист", [
-            { icon: "🎧", text: "Открыть в Spotify", url: finalSpotifyUrl }
-        ]);
-    }
-});
-"; 
-        
-        const finalSpotifyUrl = links.spotify || defaultSpotifyUrl;
-
-        showLinkModal("Слушать плейлист", [
-            { icon: "🎧", text: "Открыть в Spotify", url: finalSpotifyUrl }
-        ]);
-    }
-});
-"; 
-        
-        const finalSpotifyUrl = links.spotify || defaultSpotifyUrl;
-
-        showLinkModal("Слушать плейлист", [
-            { icon: "🎧", text: "Открыть в Spotify", url: finalSpotifyUrl }
-        ]);
-    }
-});
-
 
 // 4. Универсальное модальное окно
 function showLinkModal(title, options) {
@@ -533,4 +394,3 @@ async function initApp() {
 }
 
 initApp();
-
