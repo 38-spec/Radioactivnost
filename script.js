@@ -25,7 +25,7 @@ const playlistsData = {
     2: {
         name: "Старая Школа",
         // ВСТАВЬТЕ СЮДА ССЫЛКУ НА СПОТИФАЙ ПЛЕЙЛИСТ "СТАРАЯ ШКОЛА"
-        spotifyUrl: "https://open.spotify.com/playlist/ВАША_ССЫЛКА_НА_СТАРУЮ_ШКОЛУ", 
+        spotifyUrl: "https://open.spotify.com/playlist/4i0gEbdeQ0je5ANjmQCuGA?si=vjbSRnRDSkuVNkeYOKiYQg&utm_source=copy-link&pi=gCo5u7wdRyGj8", 
         tracks: [
             { title: "Truffel the Phunky", artist: "Bionic Muscle", src: `${R2_BASE_URL}/OldSchool/Truffel%20the%20Phunky%20Phaqir%20-%20Bionic%20Muscle.mp3` },
             { title: "SiR", artist: "Hair Down", src: `${R2_BASE_URL}/OldSchool/SiR%20-%20Hair%20Down.mp3` }
@@ -34,7 +34,7 @@ const playlistsData = {
     3: {
         name: "Новая Школа",
         // ВСТАВЬТЕ СЮДА ССЫЛКУ НА СПОТИФАЙ ПЛЕЙЛИСТ "НОВАЯ ШКОЛА"
-        spotifyUrl: "https://open.spotify.com/playlist/ВАША_ССЫЛКА_НА_НОВУЮ_ШКОЛУ",
+        spotifyUrl: "https://open.spotify.com/playlist/3XOU9kzckIsCcY02opnNf4?si=Petq-_BsQiqFv_6jfHFATA&utm_source=copy-link&pi=g3Bgrfl0Sn-02",
         tracks: [
             { title: "Трек 1", artist: "Исполнитель", src: `${R2_BASE_URL}/playlist3/track1.mp3` }
         ]
