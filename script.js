@@ -235,22 +235,17 @@ function formatTime(seconds) {
 async function loadArtistLinks() {
     try {
         console.log("🔄 Загрузка данных из Google Таблицы...");
-        console.log("URL:", SHEET_URL);
         
         const response = await fetch(SHEET_URL);
         const text = await response.text();
-        
-        console.log("📥 Получены данные:", text.substring(0, 200) + "...");
         
         // Google отдает данные с небольшим "мусором" по краям, очищаем его
         const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonStr);
         
-        console.log("📊 Разобранные данные:", data);
-        
         // Получаем названия колонок
         const cols = data.table.cols.map(c => c.label);
-        console.log("📋 Колонки:", cols);
+        console.log("📋 Названия колонок:", cols);
         
         // Преобразуем строки таблицы в удобные объекты
         artistLinksData = data.table.rows.map(row => {
@@ -265,12 +260,16 @@ async function loadArtistLinks() {
         });
         
         console.log("✅ Загружено строк:", artistLinksData.length);
-        console.log("📄 Данные:", artistLinksData);
+        console.log("📄 Все данные из таблицы:");
+        artistLinksData.forEach((item, index) => {
+            console.log(`  [${index}]`, item);
+        });
         
     } catch (error) {
         console.error("❌ Ошибка загрузки Google Таблицы:", error);
     }
 }
+
 
 // 2. Поиск нужных ссылок для текущего играющего трека
 function getLinksForCurrentTrack() {
