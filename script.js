@@ -74,21 +74,23 @@ function createShuffledIndexes(length) {
     return indexes;
 }
 
-// === ОТРИСОВКА ПЛЕЙЛИСТОВ (ИСПРАВЛЕНА) ===
+// === ОТРИСОВКА ПЛЕЙЛИСТОВ ===
 function renderPlaylists() {
     if (!playlistsGrid) return;
-    playlistsGrid.innerHTML = ''; // Полная очистка
+    
+    // Сначала убираем active у ВСЕХ карточек
+    const allCards = playlistsGrid.querySelectorAll('.playlist-card');
+    allCards.forEach(card => card.classList.remove('active'));
+    
+    // Очищаем и перерисовываем
+    playlistsGrid.innerHTML = '';
     
     Object.keys(playlistsData).forEach(id => {
         const playlist = playlistsData[id];
-        // Строгое численное сравнение
         const isActive = Number(id) === Number(currentPlaylistId);
         
         const card = document.createElement('div');
-        card.className = 'playlist-card'; // Сбрасываем классы
-        if (isActive) {
-            card.classList.add('active'); // Добавляем ТОЛЬКО активному элементу
-        }
+        card.className = 'playlist-card' + (isActive ? ' active' : '');
         card.dataset.id = id;
         
         const iconHtml = isActive && isPlaying 
@@ -231,10 +233,10 @@ function formatTime(seconds) {
 }
 
 // =========================================================================
-// === ЗАГРУЗКА ИЗ GOOGLE ТАБЛИЦЫ И КНОПКА ПОДЕЛИТЬСЯ (ИСПРАВЛЕНО) ===
+// === ЗАГРУЗКА ИЗ GOOGLE ТАБЛИЦЫ И КНОПКА ПОДЕЛИТЬСЯ ===
 // =========================================================================
 
-// 1. Загрузка и парсинг таблицы с УМНЫМ распознаванием колонок
+// 1. Загрузка и парсинг таблицы с распознаванием ВСЕХ колонок
 async function loadArtistLinks() {
     try {
         const response = await fetch(SHEET_URL);
@@ -250,14 +252,16 @@ async function loadArtistLinks() {
             row.c.forEach((cell, index) => {
                 let colName = cols[index] ? String(cols[index]).trim().toLowerCase() : "";
                 
-                // Умное определение колонок по ключевым словам (регистр не важен)
+                // Умное определение колонок по ключевым словам
                 if (colName.includes('playlist') || colName === 'id') colName = 'playlistid';
                 else if (colName.includes('insta')) colName = 'instagram';
                 else if (colName.includes('yandex') || colName.includes('яндекс')) colName = 'yandex';
+                else if (colName.includes('youtube') || colName.includes('ютуб') || colName.includes('you')) colName = 'youtube';
                 else if (colName.includes('spotify')) colName = 'spotify';
+                else if (colName.includes('general') || colName.includes('общая') || colName.includes('ссылка') || colName === 'link') colName = 'general';
                 else if (colName.includes('title') || colName.includes('название') || colName.includes('трек')) colName = 'title';
                 else if (colName.includes('artist') || colName.includes('исполнитель')) colName = 'artist';
-                else colName = colName.replace(/\s+/g, '_'); // для любых других колонок
+                else colName = colName.replace(/\s+/g, '_');
                 
                 obj[colName] = cell && cell.v ? String(cell.v).trim() : "";
             });
@@ -267,6 +271,10 @@ async function loadArtistLinks() {
         });
         
         console.log("✅ Ссылки из Google Таблицы успешно загружены:", artistLinksData.length, "строк");
+        // Для отладки: выводим первую строку
+        if (artistLinksData.length > 0) {
+            console.log("📋 Пример данных:", artistLinksData[0]);
+        }
         
     } catch (error) {
         console.error("❌ Ошибка загрузки Google Таблицы:", error);
@@ -287,8 +295,16 @@ function getLinksForCurrentTrack() {
             item.artist && item.artist.trim().toLowerCase() === searchArtist;
     });
 
-    // Если не нашли, возвращаем пустые строки (они будут отфильтрованы в модалке)
-    return linkData || { instagram: "", yandex: "", spotify: "", title: "", artist: "" };
+    // Возвращаем ВСЕ возможные ссылки
+    return linkData || { 
+        instagram: "", 
+        yandex: "", 
+        youtube: "", 
+        spotify: "", 
+        general: "",
+        title: "", 
+        artist: "" 
+    };
 }
 
 // 3. Обработчик кнопки "Поделиться"
@@ -298,20 +314,23 @@ shareBtn.addEventListener('click', () => {
         return;
     }
     
-    // ИСПРАВЛЕНИЕ БАГА: Принудительно перерисовываем плейлисты перед открытием модалки,
-    // чтобы сбросить любые CSS-артефакты или "залипший" фокус
-    renderPlaylists();
-    
     const links = getLinksForCurrentTrack();
     
     if (currentPlaylistId === 1) {
-        showLinkModal("Перейти к исполнителю", [
-            { icon: "📸", text: "Instagram", url: links.instagram },
+        // Для Ma Hood: собираем ВСЕ доступные ссылки
+        const allLinks = [
+            { icon: "", text: "Instagram", url: links.instagram },
             { icon: "🎵", text: "Яндекс Музыка", url: links.yandex },
-            { icon: "🎧", text: "Spotify", url: links.spotify }
-        ]);
+            { icon: "🎧", text: "Spotify", url: links.spotify },
+            { icon: "▶️", text: "YouTube", url: links.youtube },
+            { icon: "", text: "Общая ссылка", url: links.general }
+        ];
+        
+        showLinkModal("Перейти к исполнителю", allLinks);
     } else {
+        // Для плейлистов 2 и 3: берем индивидуальную ссылку
         const playlist = playlistsData[currentPlaylistId];
+        
         showLinkModal("Слушать плейлист", [
             { icon: "🎧", text: "Открыть в Spotify", url: playlist.spotifyUrl }
         ]);
@@ -320,8 +339,10 @@ shareBtn.addEventListener('click', () => {
 
 // 4. Универсальное модальное окно
 function showLinkModal(title, options) {
+    // Сначала закрываем старую модалку если есть
     closeShareModal();
-
+    
+    // Фильтруем только непустые ссылки
     const validOptions = options.filter(opt => opt.url && opt.url.trim() !== "");
 
     if (validOptions.length === 0) {
@@ -333,7 +354,7 @@ function showLinkModal(title, options) {
     modal.className = 'share-modal'; 
     
     const optionsHtml = validOptions.map(opt => `
-        <button class="share-option" onclick="openExternalLink('${opt.url}')">
+        <button class="share-option" data-url="${opt.url}">
             <span class="share-option-icon">${opt.icon}</span>
             <span>${opt.text}</span>
         </button>
@@ -345,27 +366,36 @@ function showLinkModal(title, options) {
             <div class="share-options">
                 ${optionsHtml}
             </div>
-            <button class="share-close" onclick="closeShareModal()">Закрыть</button>
+            <button class="share-close">Закрыть</button>
         </div>
     `;
     document.body.appendChild(modal);
+    
+    // Добавляем обработчики на кнопки
+    modal.querySelectorAll('.share-option').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            if (url) {
+                tg.openLink(url);
+                closeShareModal();
+            }
+        });
+    });
+    
+    // Обработчик на кнопку закрытия
+    modal.querySelector('.share-close').addEventListener('click', closeShareModal);
 }
 
-// 5. Открытие ссылки и закрытие модалки
-function openExternalLink(url) {
-    if (url && url.trim() !== "") {
-        tg.openLink(url); 
-    }
-    closeShareModal();
-}
-
+// 5. Закрытие модалки с перерисовкой
 function closeShareModal() {
     const modal = document.querySelector('.share-modal');
     if (modal) {
+        // Удаляем модалку
         modal.remove();
-        // ИСПРАВЛЕНИЕ БАГА: Принудительно перерисовываем плейлисты при закрытии.
-        // Это гарантированно убирает визуальный баг с "выбранными" карточками.
-        renderPlaylists();
+        // Принудительно перерисовываем плейлисты
+        setTimeout(() => {
+            renderPlaylists();
+        }, 100); // Небольшая задержка для корректного закрытия
     }
 }
 
