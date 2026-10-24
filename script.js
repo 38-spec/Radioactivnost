@@ -18,8 +18,8 @@ const playlistsData = {
     1: {
         name: "Ma Hood",
         tracks: [
-            { title: "Autlo", artist: "XXX", src: `${R2_BASE_URL}/MaBroths/autlo_hpp.mp3` },
-            { title: "Шаныч", artist: "Come and find me", src: `${R2_BASE_URL}/MaBroths/Come%26findme_demo01.mp3` }
+            { title: "Track 01", artist: "Autlo", src: `${R2_BASE_URL}/MaBroths/autlo_hpp.mp3` },
+            { title: "Come and find me", artist: "Шаныч", src: `${R2_BASE_URL}/MaBroths/Come%26findme_demo01.mp3` }
         ]
     },
     2: {
@@ -229,18 +229,28 @@ function formatTime(seconds) {
 // === НОВЫЙ ФУНКЦИОНАЛ: ЗАГРУЗКА ИЗ GOOGLE ТАБЛИЦЫ И КНОПКА ПОДЕЛИТЬСЯ ===
 // =========================================================================
 
+// ... (начало кода без изменений до функции loadArtistLinks) ...
+
 // 1. Загрузка и парсинг таблицы
 async function loadArtistLinks() {
     try {
+        console.log("🔄 Загрузка данных из Google Таблицы...");
+        console.log("URL:", SHEET_URL);
+        
         const response = await fetch(SHEET_URL);
         const text = await response.text();
+        
+        console.log("📥 Получены данные:", text.substring(0, 200) + "...");
         
         // Google отдает данные с небольшим "мусором" по краям, очищаем его
         const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonStr);
         
+        console.log("📊 Разобранные данные:", data);
+        
         // Получаем названия колонок
         const cols = data.table.cols.map(c => c.label);
+        console.log("📋 Колонки:", cols);
         
         // Преобразуем строки таблицы в удобные объекты
         artistLinksData = data.table.rows.map(row => {
@@ -253,7 +263,10 @@ async function loadArtistLinks() {
             if (obj.playlistId) obj.playlistId = parseInt(obj.playlistId);
             return obj;
         });
-        console.log("✅ Ссылки из Google Таблицы успешно загружены!");
+        
+        console.log("✅ Загружено строк:", artistLinksData.length);
+        console.log("📄 Данные:", artistLinksData);
+        
     } catch (error) {
         console.error("❌ Ошибка загрузки Google Таблицы:", error);
     }
@@ -264,104 +277,29 @@ function getLinksForCurrentTrack() {
     const playlist = playlistsData[currentPlaylistId];
     const track = playlist.tracks[shuffledIndexes[currentTrackIndex]];
     
+    console.log("🔍 Поиск ссылок для трека:", track.title, "-", track.artist);
+    console.log("Playlist ID:", currentPlaylistId);
+    
     const searchTitle = track.title.trim().toLowerCase();
     const searchArtist = track.artist.trim().toLowerCase();
 
-    const linkData = artistLinksData.find(item => 
-        item.playlistId === currentPlaylistId && 
-        item.title && item.title.trim().toLowerCase() === searchTitle &&
-        item.artist && item.artist.trim().toLowerCase() === searchArtist
-    );
+    const linkData = artistLinksData.find(item => {
+        const match = item.playlistId === currentPlaylistId && 
+            item.title && item.title.trim().toLowerCase() === searchTitle &&
+            item.artist && item.artist.trim().toLowerCase() === searchArtist;
+        
+        if (match) {
+            console.log("✅ Найдено совпадение:", item);
+        }
+        return match;
+    });
+
+    if (!linkData) {
+        console.warn("⚠️ Не найдено совпадение в таблице!");
+        console.log("Доступные данные в таблице:", artistLinksData);
+    }
 
     return linkData || { instagram: "", yandex: "", spotify: "" };
 }
 
-// 3. Обновленный клик по кнопке "Поделиться"
-shareBtn.addEventListener('click', () => {
-    if (!currentPlaylistId) {
-        showToast('Сначала выбери трек!');
-        return;
-    }
-    
-    const links = getLinksForCurrentTrack();
-    
-    if (currentPlaylistId === 1) {
-        showLinkModal("Перейти к исполнителю", [
-            { icon: "", text: "Instagram", url: links.instagram },
-            { icon: "🎵", text: "Яндекс Музыка", url: links.yandex }
-        ]);
-    } else {
-        showLinkModal("Слушать плейлист", [
-            { icon: "🎧", text: "Открыть в Spotify", url: links.spotify }
-        ]);
-    }
-});
-
-// 4. Универсальное модальное окно
-function showLinkModal(title, options) {
-    closeShareModal();
-
-    const validOptions = options.filter(opt => opt.url && opt.url.trim() !== "");
-
-    if (validOptions.length === 0) {
-        showToast('Для этого трека ссылки еще не добавлены в таблицу');
-        return;
-    }
-
-    const modal = document.createElement('div');
-    modal.className = 'share-modal'; 
-    
-    const optionsHtml = validOptions.map(opt => `
-        <button class="share-option" onclick="openExternalLink('${opt.url}')">
-            <span class="share-option-icon">${opt.icon}</span>
-            <span>${opt.text}</span>
-        </button>
-    `).join('');
-
-    modal.innerHTML = `
-        <div class="share-modal-content">
-            <div class="share-modal-title">${title}</div>
-            <div class="share-options">
-                ${optionsHtml}
-            </div>
-            <button class="share-close" onclick="closeShareModal()">Закрыть</button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
-
-// 5. Открытие ссылки
-function openExternalLink(url) {
-    if (url && url.trim() !== "") {
-        tg.openLink(url); 
-    }
-    closeShareModal();
-}
-
-function closeShareModal() {
-    const modal = document.querySelector('.share-modal');
-    if (modal) modal.remove();
-}
-
-function showToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2500);
-}
-
-document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('share-modal')) closeShareModal();
-});
-
-// =========================================================================
-// === ИНИЦИАЛИЗАЦИЯ ===
-// =========================================================================
-
-async function initApp() {
-    await loadArtistLinks();
-    renderPlaylists();
-}
-
-initApp();
+// ... (остальной код без изменений) ...
