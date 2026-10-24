@@ -6,7 +6,7 @@ tg.expand();
 // Базовый URL Cloudflare R2
 const R2_BASE_URL = "https://pub-7c17c9badb4645aea8c6a386c544cca3.r2.dev";
 
-// === НОВОЕ: ВСТАВЬТЕ СЮДА ВАШ SHEET_ID ИЗ ШАГА 3 ===
+// === НОВОЕ: ВСТАВЬТЕ СЮДА ВАШ SHEET_ID ===
 const SHEET_ID = "1dyard1Bb_7Vwmi_cVj2rEqcDNMzM9LPngohSoXH7JTQ"; 
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
@@ -24,6 +24,8 @@ const playlistsData = {
     },
     2: {
         name: "Старая Школа",
+        // ВСТАВЬТЕ СЮДА ССЫЛКУ НА СПОТИФАЙ ПЛЕЙЛИСТ "СТАРАЯ ШКОЛА"
+        spotifyUrl: "https://open.spotify.com/playlist/ВАША_ССЫЛКА_НА_СТАРУЮ_ШКОЛУ", 
         tracks: [
             { title: "Truffel the Phunky", artist: "Bionic Muscle", src: `${R2_BASE_URL}/OldSchool/Truffel%20the%20Phunky%20Phaqir%20-%20Bionic%20Muscle.mp3` },
             { title: "SiR", artist: "Hair Down", src: `${R2_BASE_URL}/OldSchool/SiR%20-%20Hair%20Down.mp3` }
@@ -31,6 +33,8 @@ const playlistsData = {
     },
     3: {
         name: "Новая Школа",
+        // ВСТАВЬТЕ СЮДА ССЫЛКУ НА СПОТИФАЙ ПЛЕЙЛИСТ "НОВАЯ ШКОЛА"
+        spotifyUrl: "https://open.spotify.com/playlist/ВАША_ССЫЛКА_НА_НОВУЮ_ШКОЛУ",
         tracks: [
             { title: "Трек 1", artist: "Исполнитель", src: `${R2_BASE_URL}/playlist3/track1.mp3` }
         ]
@@ -232,8 +236,6 @@ function formatTime(seconds) {
 // 1. Загрузка и парсинг таблицы
 async function loadArtistLinks() {
     try {
-        console.log("🔄 Загрузка данных из Google Таблицы...");
-        
         const response = await fetch(SHEET_URL);
         const text = await response.text();
         
@@ -243,7 +245,6 @@ async function loadArtistLinks() {
         
         // Получаем названия колонок
         const cols = data.table.cols.map(c => c.label);
-        console.log("📋 Названия колонок:", cols);
         
         // Преобразуем строки таблицы в удобные объекты
         artistLinksData = data.table.rows.map(row => {
@@ -257,11 +258,7 @@ async function loadArtistLinks() {
             return obj;
         });
         
-        console.log("✅ Загружено строк:", artistLinksData.length);
-        console.log("📄 Все данные из таблицы:");
-        artistLinksData.forEach((item, index) => {
-            console.log(`  [${index}]`, item);
-        });
+        console.log("✅ Ссылки из Google Таблицы успешно загружены:", artistLinksData.length, "строк");
         
     } catch (error) {
         console.error("❌ Ошибка загрузки Google Таблицы:", error);
@@ -273,32 +270,20 @@ function getLinksForCurrentTrack() {
     const playlist = playlistsData[currentPlaylistId];
     const track = playlist.tracks[shuffledIndexes[currentTrackIndex]];
     
-    console.log("🔍 Поиск ссылок для трека:", track.title, "-", track.artist);
-    console.log("Playlist ID:", currentPlaylistId);
-    
     const searchTitle = track.title.trim().toLowerCase();
     const searchArtist = track.artist.trim().toLowerCase();
 
     const linkData = artistLinksData.find(item => {
-        const match = item.playlistId === currentPlaylistId && 
+        return item.playlistId === currentPlaylistId && 
             item.title && item.title.trim().toLowerCase() === searchTitle &&
             item.artist && item.artist.trim().toLowerCase() === searchArtist;
-        
-        if (match) {
-            console.log("✅ Найдено совпадение:", item);
-        }
-        return match;
     });
 
-    if (!linkData) {
-        console.warn("⚠️ Не найдено совпадение в таблице!");
-        console.log("Доступные данные в таблице:", artistLinksData);
-    }
-
+    // Если не нашли, возвращаем пустые строки (они будут отфильтрованы позже)
     return linkData || { instagram: "", yandex: "", spotify: "" };
 }
 
-// 3. Обновленный клик по кнопке "Поделиться"
+// 3. Обработчик кнопки "Поделиться"
 shareBtn.addEventListener('click', () => {
     if (!currentPlaylistId) {
         showToast('Сначала выбери трек!');
@@ -308,20 +293,18 @@ shareBtn.addEventListener('click', () => {
     const links = getLinksForCurrentTrack();
     
     if (currentPlaylistId === 1) {
-        // Для Ma Broths: показываем только те ссылки, что есть в таблице
+        // Для Ma Broths: передаем все возможные ссылки. 
+        // Функция showLinkModal САМА уберет те, где ссылка пустая!
         showLinkModal("Перейти к исполнителю", [
             { icon: "📸", text: "Instagram", url: links.instagram },
             { icon: "🎵", text: "Яндекс Музыка", url: links.yandex }
         ]);
     } else {
-        // Для остальных плейлистов: берем ссылку из таблицы, 
-        // а если ячейка пустая, подставляем общую ссылку на плейлист
-        const defaultSpotifyUrl = "https://open.spotify.com/playlist/4i0gEbdeQ0je5ANjmQCuGA?si=JrC1U_CyRbS3N9U6BtxhMQ&utm_source=copy-link&pi=a2MBSfKMT3Kfi"; 
+        // Для плейлистов 2 и 3: берем индивидуальную ссылку из объекта playlistsData
+        const playlist = playlistsData[currentPlaylistId];
         
-        const finalSpotifyUrl = links.spotify || defaultSpotifyUrl;
-
         showLinkModal("Слушать плейлист", [
-            { icon: "🎧", text: "Открыть в Spotify", url: finalSpotifyUrl }
+            { icon: "🎧", text: "Открыть в Spotify", url: playlist.spotifyUrl }
         ]);
     }
 });
@@ -330,6 +313,8 @@ shareBtn.addEventListener('click', () => {
 function showLinkModal(title, options) {
     closeShareModal();
 
+    // === ВОТ ЗДЕСЬ МАГИЯ: ===
+    // Эта строка оставляет в массиве только те кнопки, у которых url НЕ пустой и НЕ состоит из пробелов
     const validOptions = options.filter(opt => opt.url && opt.url.trim() !== "");
 
     if (validOptions.length === 0) {
