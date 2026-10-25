@@ -12,7 +12,7 @@ const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq
 
 // Глобальные переменные
 let artistLinksData = [];
-let isShareModalOpen = false; // Флаг защиты от фантомных кликов
+let isShareModalOpen = false;
 
 let playlistsData = {
     1: { name: "Ma Hood", spotifyUrl: "", tracks: [] },
@@ -43,10 +43,11 @@ const shareBtn = document.getElementById('share-btn');
 const progressBar = document.getElementById('progress-bar');
 const currentTimeEl = document.getElementById('current-time');
 const durationEl = document.getElementById('duration');
+const iconPlay = document.getElementById('icon-play');
+const iconPause = document.getElementById('icon-pause');
 const playerWrapper = document.getElementById('player-wrapper');
 
 // === УРОВЕНЬ 1: Глобальный перехватчик (Capture Phase) ===
-// Блокирует ЛЮБОЙ клик по плейлисту, если открыта модалка
 document.addEventListener('click', (e) => {
     if (isShareModalOpen && e.target.closest('.playlist-card')) {
         e.stopImmediatePropagation();
@@ -80,6 +81,19 @@ function setModalState(isOpen) {
     }
 }
 
+// === ОБНОВЛЕНИЕ ИКОНКИ ЦЕНТРАЛЬНОЙ КНОПКИ ===
+function updateMainPlayPauseIcon() {
+    if (!iconPlay || !iconPause) return;
+    
+    if (isPlaying) {
+        iconPlay.style.display = 'none';
+        iconPause.style.display = 'block';
+    } else {
+        iconPlay.style.display = 'block';
+        iconPause.style.display = 'none';
+    }
+}
+
 // === ОТРИСОВКА И UI ===
 function renderPlaylists() {
     if (!playlistsGrid) return;
@@ -108,7 +122,6 @@ function renderPlaylists() {
             </div>
         `;
         
-        // УРОВЕНЬ 2: Локальная проверка флага
         card.addEventListener('click', (e) => {
             if (isShareModalOpen) {
                 e.stopImmediatePropagation();
@@ -125,7 +138,6 @@ function renderPlaylists() {
 function setActivePlaylist(playlistId) {
     if (!playlistsGrid) return;
     
-    // Снимаем active со всех
     const allCards = playlistsGrid.querySelectorAll('.playlist-card');
     allCards.forEach(card => {
         card.classList.remove('active');
@@ -135,7 +147,6 @@ function setActivePlaylist(playlistId) {
         }
     });
     
-    // Добавляем active на нужный
     const activeCard = playlistsGrid.querySelector(`[data-id="${playlistId}"]`);
     if (activeCard) {
         activeCard.classList.add('active');
@@ -201,18 +212,21 @@ function loadTrack() {
     currentArtist.textContent = track.artist;
     currentPlaylistBadge.textContent = playlist.name;
     
-    // Гарантированно показываем плеер
     if (nowPlaying) nowPlaying.style.display = 'flex';
     if (controls) controls.style.display = 'flex';
     if (progressContainer) progressContainer.style.display = 'flex';
     if (shuffleInfo) shuffleInfo.style.display = 'block';
     if (playerWrapper) playerWrapper.style.display = 'block';
+    
+    // Обновляем иконку центральной кнопки
+    updateMainPlayPauseIcon();
 }
 
 function playTrack() {
     audio.play().then(() => {
         isPlaying = true;
         updateActivePlaylistIcon();
+        updateMainPlayPauseIcon();
     }).catch(e => {
         console.error('Ошибка воспроизведения:', e);
         showToast('Ошибка воспроизведения');
@@ -223,6 +237,7 @@ function pauseTrack() {
     audio.pause();
     isPlaying = false;
     updateActivePlaylistIcon();
+    updateMainPlayPauseIcon();
 }
 
 function togglePlay() {
@@ -367,7 +382,7 @@ function showLinkModal(title, options) {
         return;
     }
 
-    setModalState(true); // ВКЛЮЧАЕМ ЗАЩИТУ
+    setModalState(true);
 
     const modal = document.createElement('div');
     modal.className = 'share-modal'; 
@@ -411,7 +426,6 @@ function closeShareModal() {
     const modal = document.querySelector('.share-modal');
     if (modal) modal.remove();
     
-    // УРОВЕНЬ 3: Задержка снятия флага, чтобы "отпускание" пальца не зарегистрировалось как клик
     setTimeout(() => {
         setModalState(false);
     }, 400);
