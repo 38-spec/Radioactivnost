@@ -12,7 +12,7 @@ const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq
 
 // Глобальные переменные
 let artistLinksData = [];
-let isShareModalOpen = false; // Флаг для блокировки кликов при открытом модальном окне
+let isShareModalOpen = false;
 
 let playlistsData = {
     1: { name: "Ma Hood", spotifyUrl: "", tracks: [] },
@@ -47,6 +47,18 @@ const iconPlay = document.getElementById('icon-play');
 const iconPause = document.getElementById('icon-pause');
 const playerWrapper = document.getElementById('player-wrapper');
 
+// === УРОВЕНЬ 1: Глобальный перехватчик в capture phase ===
+// Он срабатывает ДО всех остальных обработчиков и блокирует клики по плейлистам
+document.addEventListener('click', (e) => {
+    if (isShareModalOpen) {
+        // Если клик по плейлисту — блокируем
+        if (e.target.closest('.playlist-card')) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+        }
+    }
+}, true); // true = capture phase
+
 // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
 function createShuffledIndexes(length) {
     const indexes = Array.from({ length }, (_, i) => i);
@@ -62,6 +74,16 @@ function formatTime(seconds) {
     const min = Math.floor(seconds / 60);
     const sec = Math.floor(seconds % 60);
     return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+}
+
+// === УРОВЕНЬ 2: Установка флага на body для CSS-блокировки ===
+function setModalState(open) {
+    isShareModalOpen = open;
+    if (open) {
+        document.body.classList.add('modal-open');
+    } else {
+        document.body.classList.remove('modal-open');
+    }
 }
 
 // === ОТРИСОВКА ПЛЕЙЛИСТОВ ===
@@ -93,12 +115,12 @@ function renderPlaylists() {
             </div>
         `;
         
-        // ЗАЩИТА ОТ ФАНТОМНЫХ КЛИКОВ
+        // УРОВЕНЬ 3: Локальная проверка флага
         card.addEventListener('click', (e) => {
             if (isShareModalOpen) {
+                e.stopImmediatePropagation();
                 e.preventDefault();
-                e.stopPropagation();
-                return; // Игнорируем клик, если модальное окно было открыто
+                return;
             }
             handlePlaylistClick(Number(id));
         });
@@ -109,6 +131,8 @@ function renderPlaylists() {
 
 // === ЛОГИКА ВОСПРОИЗВЕДЕНИЯ ===
 function handlePlaylistClick(playlistId) {
+    if (isShareModalOpen) return; // Двойная проверка
+    
     const playlist = playlistsData[playlistId];
     if (!playlist || playlist.tracks.length === 0) {
         showToast('Нет треков');
@@ -201,7 +225,7 @@ function prevTrack() {
     playTrack();
 }
 
-// === ОБРАБОТЧИКИ СОБЫТИЙ АУДИО И КНОПОК ===
+// === ОБРАБОТЧИКИ СОБЫТИЙ ===
 playBtn.addEventListener('click', togglePlay);
 prevBtn.addEventListener('click', prevTrack);
 
@@ -224,7 +248,7 @@ progressBar.addEventListener('input', () => {
     }
 });
 
-// === ЗАГРУЗКА ДАННЫХ ИЗ GOOGLE SHEETS ===
+// === GOOGLE SHEETS ===
 async function loadArtistLinks() {
     try {
         const response = await fetch(SHEET_URL);
@@ -293,7 +317,7 @@ function getLinksForCurrentTrack() {
     }) || {};
 }
 
-// === МОДАЛЬНОЕ ОКНО "ПОДЕЛИТЬСЯ" ===
+// === КНОПКА ПОДЕЛИТЬСЯ ===
 shareBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (!currentPlaylistId) {
@@ -306,7 +330,7 @@ shareBtn.addEventListener('click', (e) => {
     if (currentPlaylistId === 1) {
         showLinkModal("Исполнитель", [
             { icon: "", text: "Instagram", url: links.instagram },
-            { icon: "🎵", text: "Яндекс Музыка", url: links.yandex },
+            { icon: "", text: "Яндекс Музыка", url: links.yandex },
             { icon: "🎧", text: "Spotify", url: links.spotify },
             { icon: "▶️", text: "YouTube", url: links.youtube }
         ]);
@@ -318,17 +342,19 @@ shareBtn.addEventListener('click', (e) => {
     }
 });
 
+// === МОДАЛЬНОЕ ОКНО ===
 function showLinkModal(title, options) {
-    isShareModalOpen = true; // БЛОКИРУЕМ клики по плейлистам
     closeShareModal();
     
     const validOptions = options.filter(opt => opt.url && opt.url.trim() !== "");
 
     if (validOptions.length === 0) {
         showToast('Нет ссылок');
-        isShareModalOpen = false;
         return;
     }
+
+    // Устанавливаем флаг ДО создания модалки
+    setModalState(true);
 
     const modal = document.createElement('div');
     modal.className = 'share-modal'; 
@@ -350,7 +376,6 @@ function showLinkModal(title, options) {
     
     document.body.appendChild(modal);
     
-    // Блокируем всплытие на всех элементах модального окна
     modal.querySelector('.share-modal-content').addEventListener('click', e => {
         e.stopPropagation();
         e.preventDefault();
@@ -387,11 +412,11 @@ function closeShareModal() {
     const modal = document.querySelector('.share-modal');
     if (modal) {
         modal.remove();
-        // Разблокируем клики с небольшой задержкой, чтобы анимация/удаление завершилось
-        setTimeout(() => {
-            isShareModalOpen = false;
-        }, 300);
     }
+    // Снимаем флаг с задержкой — защита от "фантомного" клика при отпускании пальца
+    setTimeout(() => {
+        setModalState(false);
+    }, 400);
 }
 
 function showToast(message) {
@@ -416,4 +441,3 @@ async function initApp() {
 }
 
 initApp();
-
