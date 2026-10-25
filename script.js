@@ -3,39 +3,33 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Базовый URL Cloudflare R2
+// Базовый URL Cloudflare R2 (используется, если в таблице указан только путь к файлу)
 const R2_BASE_URL = "https://pub-7c17c9badb4645aea8c6a386c544cca3.r2.dev";
 
 // === SHEET_ID ===
 const SHEET_ID = "1dyard1Bb_7Vwmi_cVj2rEqcDNMzM9LPngohSoXH7JTQ"; 
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
-// Глобальная переменная для хранения ссылок из таблицы
+// Глобальная переменная для хранения всех данных из таблицы
 let artistLinksData = [];
 
-// Данные плейлистов
-const playlistsData = {
+// Базовая структура плейлистов (имена и Spotify ссылки)
+// Треки будут добавлены сюда динамически из Google Таблицы
+let playlistsData = {
     1: {
         name: "Ma Hood",
-        tracks: [
-            { title: "Track 01", artist: "Autlo", src: `${R2_BASE_URL}/MaBroths/autlo_hpp.mp3` },
-            { title: "Come and find me", artist: "Шаныч", src: `${R2_BASE_URL}/MaBroths/Come%26findme_demo01.mp3` }
-        ]
+        spotifyUrl: "", 
+        tracks: []
     },
     2: {
         name: "Старая Школа",
         spotifyUrl: "https://open.spotify.com/playlist/4i0gEbdeQ0je5ANjmQCuGA?si=vjbSRnRDSkuVNkeYOKiYQg&utm_source=copy-link&pi=gCo5u7wdRyGj8", 
-        tracks: [
-            { title: "Truffel the Phunky", artist: "Bionic Muscle", src: `${R2_BASE_URL}/OldSchool/Truffel%20the%20Phunky%20Phaqir%20-%20Bionic%20Muscle.mp3` },
-            { title: "SiR", artist: "Hair Down", src: `${R2_BASE_URL}/OldSchool/SiR%20-%20Hair%20Down.mp3` }
-        ]
+        tracks: []
     },
     3: {
         name: "Новая Школа",
         spotifyUrl: "https://open.spotify.com/playlist/3XOU9kzckIsCcY02opnNf4?si=Petq-_BsQiqFv_6jfHFATA&utm_source=copy-link&pi=g3Bgrfl0Sn-02",
-        tracks: [
-            { title: "Трек 1", artist: "Исполнитель", src: `${R2_BASE_URL}/playlist3/track1.mp3` }
-        ]
+        tracks: []
     }
 };
 
@@ -78,16 +72,17 @@ function createShuffledIndexes(length) {
 function renderPlaylists() {
     if (!playlistsGrid) return;
     
-    // Сначала убираем active у ВСЕХ карточек
     const allCards = playlistsGrid.querySelectorAll('.playlist-card');
     allCards.forEach(card => card.classList.remove('active'));
     
-    // Очищаем и перерисовываем
     playlistsGrid.innerHTML = '';
     
     Object.keys(playlistsData).forEach(id => {
         const playlist = playlistsData[id];
         const isActive = Number(id) === Number(currentPlaylistId);
+        
+        // Если треков еще нет (таблица грузится), показываем 0
+        const trackCount = playlist.tracks ? playlist.tracks.length : 0;
         
         const card = document.createElement('div');
         card.className = 'playlist-card' + (isActive ? ' active' : '');
@@ -101,7 +96,7 @@ function renderPlaylists() {
             <div class="playlist-card-content">
                 <div class="playlist-info">
                     <div class="playlist-name">${playlist.name}</div>
-                    <div class="playlist-tracks-count">${playlist.tracks.length} треков</div>
+                    <div class="playlist-tracks-count">${trackCount} треков</div>
                 </div>
                 <div class="playlist-play-icon">${iconHtml}</div>
             </div>
@@ -113,12 +108,18 @@ function renderPlaylists() {
 
 // === Обработка клика по плейлисту ===
 function handlePlaylistClick(playlistId) {
+    const playlist = playlistsData[playlistId];
+    if (!playlist || playlist.tracks.length === 0) {
+        showToast('В этом плейлисте пока нет треков');
+        return;
+    }
+
     if (currentPlaylistId === playlistId) {
         togglePlay();
         return;
     }
     currentPlaylistId = playlistId;
-    shuffledIndexes = createShuffledIndexes(playlistsData[playlistId].tracks.length);
+    shuffledIndexes = createShuffledIndexes(playlist.tracks.length);
     currentTrackIndex = 0;
     loadTrack();
     playTrack();
@@ -233,10 +234,10 @@ function formatTime(seconds) {
 }
 
 // =========================================================================
-// === ЗАГРУЗКА ИЗ GOOGLE ТАБЛИЦЫ И КНОПКА ПОДЕЛИТЬСЯ ===
+// === ЗАГРУЗКА ИЗ GOOGLE ТАБЛИЦЫ И ДИНАМИЧЕСКАЯ СБОРКА ===
 // =========================================================================
 
-// 1. Загрузка и парсинг таблицы с распознаванием ВСЕХ колонок
+// 1. Загрузка и парсинг таблицы
 async function loadArtistLinks() {
     try {
         const response = await fetch(SHEET_URL);
@@ -261,6 +262,8 @@ async function loadArtistLinks() {
                 else if (colName.includes('general') || colName.includes('общая') || colName.includes('ссылка') || colName === 'link') colName = 'general';
                 else if (colName.includes('title') || colName.includes('название') || colName.includes('трек')) colName = 'title';
                 else if (colName.includes('artist') || colName.includes('исполнитель')) colName = 'artist';
+                // === НОВОЕ: Определение колонки со ссылкой на аудиофайл ===
+                else if (colName.includes('src') || colName.includes('cloudflare') || colName.includes('audio') || colName.includes('файл') || colName.includes('mp3') || colName.includes('url')) colName = 'src';
                 else colName = colName.replace(/\s+/g, '_');
                 
                 obj[colName] = cell && cell.v ? String(cell.v).trim() : "";
@@ -270,22 +273,50 @@ async function loadArtistLinks() {
             return obj;
         });
         
-        console.log("✅ Ссылки из Google Таблицы успешно загружены:", artistLinksData.length, "строк");
-        // Для отладки: выводим первую строку
-        if (artistLinksData.length > 0) {
-            console.log("📋 Пример данных:", artistLinksData[0]);
-        }
+        console.log("✅ Данные из Google Таблицы успешно загружены:", artistLinksData.length, "строк");
         
     } catch (error) {
         console.error("❌ Ошибка загрузки Google Таблицы:", error);
+        showToast("Ошибка загрузки данных");
     }
 }
 
-// 2. Поиск нужных ссылок для текущего играющего трека
+// 2. === НОВОЕ: Динамическая сборка плейлистов из таблицы ===
+function buildPlaylistsFromSheet() {
+    artistLinksData.forEach(row => {
+        const pId = row.playlistId;
+        
+        // Проверяем, что playlistId соответствует нашим (1, 2 или 3)
+        if (playlistsData[pId]) {
+            // Добавляем трек только если у него есть название, исполнитель и ссылка на источник
+            if (row.title && row.artist && row.src) {
+                let finalSrc = row.src;
+                
+                // Если ссылка не начинается с http, добавляем базовый URL Cloudflare
+                if (!finalSrc.startsWith('http')) {
+                    finalSrc = `${R2_BASE_URL}${finalSrc.startsWith('/') ? '' : '/'}${finalSrc}`;
+                }
+                
+                playlistsData[pId].tracks.push({
+                    title: row.title,
+                    artist: row.artist,
+                    src: finalSrc
+                });
+            }
+        }
+    });
+    
+    console.log("✅ Плейлисты успешно сформированы из таблицы:", playlistsData);
+}
+
+// 3. Поиск нужных ссылок для текущего играющего трека (для кнопки "Поделиться")
 function getLinksForCurrentTrack() {
     const playlist = playlistsData[currentPlaylistId];
-    const track = playlist.tracks[shuffledIndexes[currentTrackIndex]];
+    if (!playlist || !playlist.tracks[shuffledIndexes[currentTrackIndex]]) {
+        return {};
+    }
     
+    const track = playlist.tracks[shuffledIndexes[currentTrackIndex]];
     const searchTitle = track.title.trim().toLowerCase();
     const searchArtist = track.artist.trim().toLowerCase();
 
@@ -295,19 +326,12 @@ function getLinksForCurrentTrack() {
             item.artist && item.artist.trim().toLowerCase() === searchArtist;
     });
 
-    // Возвращаем ВСЕ возможные ссылки
     return linkData || { 
-        instagram: "", 
-        yandex: "", 
-        youtube: "", 
-        spotify: "", 
-        general: "",
-        title: "", 
-        artist: "" 
+        instagram: "", yandex: "", youtube: "", spotify: "", general: "", title: "", artist: "" 
     };
 }
 
-// 3. Обработчик кнопки "Поделиться"
+// 4. Обработчик кнопки "Поделиться"
 shareBtn.addEventListener('click', () => {
     if (!currentPlaylistId) {
         showToast('Сначала выбери трек!');
@@ -317,7 +341,6 @@ shareBtn.addEventListener('click', () => {
     const links = getLinksForCurrentTrack();
     
     if (currentPlaylistId === 1) {
-        // Для Ma Hood: собираем ВСЕ доступные ссылки
         const allLinks = [
             { icon: "", text: "Instagram", url: links.instagram },
             { icon: "🎵", text: "Яндекс Музыка", url: links.yandex },
@@ -325,24 +348,18 @@ shareBtn.addEventListener('click', () => {
             { icon: "▶️", text: "YouTube", url: links.youtube },
             { icon: "", text: "Общая ссылка", url: links.general }
         ];
-        
         showLinkModal("Перейти к исполнителю", allLinks);
     } else {
-        // Для плейлистов 2 и 3: берем индивидуальную ссылку
         const playlist = playlistsData[currentPlaylistId];
-        
         showLinkModal("Слушать плейлист", [
             { icon: "🎧", text: "Открыть в Spotify", url: playlist.spotifyUrl }
         ]);
     }
 });
 
-// 4. Универсальное модальное окно
+// 5. Универсальное модальное окно
 function showLinkModal(title, options) {
-    // Сначала закрываем старую модалку если есть
     closeShareModal();
-    
-    // Фильтруем только непустые ссылки
     const validOptions = options.filter(opt => opt.url && opt.url.trim() !== "");
 
     if (validOptions.length === 0) {
@@ -363,15 +380,12 @@ function showLinkModal(title, options) {
     modal.innerHTML = `
         <div class="share-modal-content">
             <div class="share-modal-title">${title}</div>
-            <div class="share-options">
-                ${optionsHtml}
-            </div>
+            <div class="share-options">${optionsHtml}</div>
             <button class="share-close">Закрыть</button>
         </div>
     `;
     document.body.appendChild(modal);
     
-    // Добавляем обработчики на кнопки
     modal.querySelectorAll('.share-option').forEach(btn => {
         btn.addEventListener('click', function() {
             const url = this.getAttribute('data-url');
@@ -382,20 +396,14 @@ function showLinkModal(title, options) {
         });
     });
     
-    // Обработчик на кнопку закрытия
     modal.querySelector('.share-close').addEventListener('click', closeShareModal);
 }
 
-// 5. Закрытие модалки с перерисовкой
 function closeShareModal() {
     const modal = document.querySelector('.share-modal');
     if (modal) {
-        // Удаляем модалку
         modal.remove();
-        // Принудительно перерисовываем плейлисты
-        setTimeout(() => {
-            renderPlaylists();
-        }, 100); // Небольшая задержка для корректного закрытия
+        setTimeout(() => renderPlaylists(), 100);
     }
 }
 
@@ -416,7 +424,13 @@ document.addEventListener('click', (e) => {
 // =========================================================================
 
 async function initApp() {
+    // 1. Сначала загружаем сырые данные из таблицы
     await loadArtistLinks();
+    
+    // 2. Затем собираем из них структуру плейлистов
+    buildPlaylistsFromSheet();
+    
+    // 3. И только потом отрисовываем интерфейс
     renderPlaylists();
 }
 
