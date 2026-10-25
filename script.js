@@ -430,7 +430,7 @@ function closeShareModal() {
     
     setTimeout(() => {
         setModalState(false);
-    }, 500);
+    }, 1500);
 }
 
 function showToast(message) {
