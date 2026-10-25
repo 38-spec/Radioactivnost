@@ -15,6 +15,8 @@ let artistLinksData = [];
 
 // Базовая структура плейлистов (имена и Spotify ссылки)
 // Треки будут добавлены сюда динамически из Google Таблицы
+// Базовая структура плейлистов (имена и Spotify ссылки)
+// Треки будут добавлены сюда динамически из Google Таблицы
 let playlistsData = {
     1: {
         name: "Ma Hood",
@@ -30,8 +32,19 @@ let playlistsData = {
         name: "Новая Школа",
         spotifyUrl: "https://open.spotify.com/playlist/3XOU9kzckIsCcY02opnNf4?si=Petq-_BsQiqFv_6jfHFATA&utm_source=copy-link&pi=g3Bgrfl0Sn-02",
         tracks: []
+    },
+    4: {
+        name: "Chill Zone",
+        spotifyUrl: "",
+        tracks: []
+    },
+    5: {
+        name: "Beats",
+        spotifyUrl: "",
+        tracks: []
     }
 };
+
 
 // Состояние приложения
 let currentPlaylistId = null;
