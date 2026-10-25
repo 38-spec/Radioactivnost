@@ -304,6 +304,7 @@ header h1 {
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    pointer-events: auto; /* Явно включаем события */
 }
 
 .share-modal-content {
@@ -312,6 +313,12 @@ header h1 {
     padding: 24px;
     max-width: 90%;
     width: 400px;
+    pointer-events: auto; /* Включаем события для контента */
+}
+
+/* Блокируем клики на плейлистах когда модальное окно открыто */
+.share-modal ~ .app-container .playlist-card {
+    pointer-events: none;
 }
 
 .share-modal-title {
