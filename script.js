@@ -425,9 +425,34 @@ function closeShareModal() {
     const modal = document.querySelector('.share-modal');
     if (modal) {
         modal.remove();
-        setTimeout(() => renderPlaylists(), 100);
+        // УБРАТЬ: setTimeout(() => renderPlaylists(), 100);
+        // Вместо этого просто обновим иконку активного плейлиста
+        updateActivePlaylistIcon();
     }
 }
+
+// Новая функция для обновления только иконки
+function updateActivePlaylistIcon() {
+    if (!playlistsGrid || !currentPlaylistId) return;
+    
+    const allCards = playlistsGrid.querySelectorAll('.playlist-card');
+    allCards.forEach(card => {
+        const cardId = Number(card.dataset.id);
+        const isActive = cardId === Number(currentPlaylistId);
+        
+        if (isActive) {
+            const iconElement = card.querySelector('.playlist-play-icon');
+            if (iconElement) {
+                if (isPlaying) {
+                    iconElement.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" fill="white"/></svg>`;
+                } else {
+                    iconElement.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" fill="white"/></svg>`;
+                }
+            }
+        }
+    });
+}
+
 
 function showToast(message) {
     const toast = document.createElement('div');
