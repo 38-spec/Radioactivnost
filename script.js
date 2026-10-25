@@ -407,6 +407,7 @@ shareBtn.addEventListener('click', () => {
     }
 });
 
+
 // 5. Универсальное модальное окно
 function showLinkModal(title, options) {
     closeShareModal();
@@ -436,8 +437,14 @@ function showLinkModal(title, options) {
     `;
     document.body.appendChild(modal);
     
+    // Останавливаем всплытие на контенте модального окна
+    modal.querySelector('.share-modal-content').addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    
     modal.querySelectorAll('.share-option').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Останавливаем всплытие
             const url = this.getAttribute('data-url');
             if (url) {
                 tg.openLink(url);
@@ -445,6 +452,25 @@ function showLinkModal(title, options) {
             }
         });
     });
+    
+    modal.querySelector('.share-close').addEventListener('click', (e) => {
+        e.stopPropagation(); // Останавливаем всплытие
+        closeShareModal();
+    });
+    
+    // Закрытие по клику на backdrop
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeShareModal();
+        }
+    });
+}
+
+// Убираем глобальный обработчик клика, который мешал
+// document.addEventListener('click', (e) => {
+//     if (e.target.classList.contains('share-modal')) closeShareModal();
+// });
+
     
     modal.querySelector('.share-close').addEventListener('click', closeShareModal);
 }
