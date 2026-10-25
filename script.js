@@ -218,7 +218,6 @@ function loadTrack() {
     if (shuffleInfo) shuffleInfo.style.display = 'block';
     if (playerWrapper) playerWrapper.style.display = 'block';
     
-    // Обновляем иконку центральной кнопки
     updateMainPlayPauseIcon();
 }
 
@@ -373,19 +372,14 @@ shareBtn.addEventListener('click', (e) => {
     }
 });
 
-function closeShareModal() {
-    const modal = document.querySelector('.share-modal');
-    if (modal) {
-        // Сначала делаем модалку невидимой для кликов
-        modal.style.pointerEvents = 'none';
-        modal.remove();
+function showLinkModal(title, options) {
+    closeShareModal();
+    const validOptions = options.filter(opt => opt.url && opt.url.trim() !== "");
+
+    if (validOptions.length === 0) {
+        showToast('Для этого трека ссылки не добавлены');
+        return;
     }
-    
-    // УВЕЛИЧИВАЕМ ЗАДЕРЖКУ до 500ms для надёжности
-    setTimeout(() => {
-        setModalState(false);
-    }, 500);
-}
 
     setModalState(true);
 
@@ -429,11 +423,14 @@ function closeShareModal() {
 
 function closeShareModal() {
     const modal = document.querySelector('.share-modal');
-    if (modal) modal.remove();
+    if (modal) {
+        modal.style.pointerEvents = 'none';
+        modal.remove();
+    }
     
     setTimeout(() => {
         setModalState(false);
-    }, 400);
+    }, 500);
 }
 
 function showToast(message) {
