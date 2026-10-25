@@ -15,7 +15,7 @@ let artistLinksData = [];
 let isShareModalOpen = false;
 
 let playlistsData = {
-    1: { name: "Ma Hood Wave", spotifyUrl: "", tracks: [] },
+    1: { name: "The Ones I Know", spotifyUrl: "", tracks: [] },
     2: { name: "Classic Wave", spotifyUrl: "https://open.spotify.com/playlist/4i0gEbdeQ0je5ANjmQCuGA", tracks: [] },
     3: { name: "New Wave", spotifyUrl: "https://open.spotify.com/playlist/3XOU9kzckIsCcY02opnNf4", tracks: [] },
     4: { name: "Chill Wave", spotifyUrl: "", tracks: [] },
