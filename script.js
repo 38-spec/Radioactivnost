@@ -46,6 +46,7 @@ const durationEl = document.getElementById('duration');
 const iconPlay = document.getElementById('icon-play');
 const iconPause = document.getElementById('icon-pause');
 const playerWrapper = document.getElementById('player-wrapper');
+const authorSignature = document.getElementById('author-signature');
 
 // === УРОВЕНЬ 1: Глобальный перехватчик (Capture Phase) ===
 document.addEventListener('click', (e) => {
