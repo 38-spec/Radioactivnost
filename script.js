@@ -85,13 +85,12 @@ function createShuffledIndexes(length) {
 function renderPlaylists() {
     if (!playlistsGrid) return;
     
-    const allCards = playlistsGrid.querySelectorAll('.playlist-card');
-    allCards.forEach(card => card.classList.remove('active'));
-    
+    // Сначала очищаем всё
     playlistsGrid.innerHTML = '';
     
     Object.keys(playlistsData).forEach(id => {
         const playlist = playlistsData[id];
+        // Проверяем активность ТОЛЬКО по currentPlaylistId
         const isActive = Number(id) === Number(currentPlaylistId);
         
         // Если треков еще нет (таблица грузится), показываем 0
@@ -118,7 +117,6 @@ function renderPlaylists() {
         playlistsGrid.appendChild(card);
     });
 }
-
 // === Обработка клика по плейлисту ===
 function handlePlaylistClick(playlistId) {
     const playlist = playlistsData[playlistId];
@@ -127,18 +125,25 @@ function handlePlaylistClick(playlistId) {
         return;
     }
 
+    // Если кликнули на тот же плейлист - просто play/pause
     if (currentPlaylistId === playlistId) {
         togglePlay();
         return;
     }
+    
+    // Сбрасываем текущий плейлист перед переключением
     currentPlaylistId = playlistId;
     shuffledIndexes = createShuffledIndexes(playlist.tracks.length);
     currentTrackIndex = 0;
+    
+    // Перерисовываем плейлисты ДО загрузки трека
+    renderPlaylists();
+    
+    // Загружаем и воспроизводим трек
     loadTrack();
     playTrack();
 }
 
-// === Загрузка трека ===
 // === Загрузка трека ===
 function loadTrack() {
     const playlist = playlistsData[currentPlaylistId];
@@ -156,8 +161,9 @@ function loadTrack() {
     shuffleInfo.style.display = 'block';
     document.getElementById('player-wrapper').style.display = 'block';
     
-    renderPlaylists();
+    // УБРАТЬ: renderPlaylists(); - вызывается в handlePlaylistClick
 }
+
 
 // === Воспроизведение и Пауза ===
 function playTrack() {
