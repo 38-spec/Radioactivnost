@@ -461,5 +461,23 @@ body.modal-open .player-wrapper {
 
 body.modal-open .player-wrapper .control-btn {
     pointer-events: auto;
+
+    /* Усиливаем защиту - модалка должна быть полностью непрозрачной для кликов */
+.share-modal {
+    pointer-events: auto !important;
+}
+
+.share-modal.removing {
+    pointer-events: none !important;
+}
+
+/* Гарантируем блокировку плейлистов */
+body.modal-open .playlists-grid,
+body.modal-open .playlist-card {
+    pointer-events: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
 }
 
