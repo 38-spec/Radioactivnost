@@ -452,3 +452,21 @@ body.modal-open .player-wrapper {
 body.modal-open .player-wrapper .control-btn {
     pointer-events: auto;
 }
+
+.author-signature {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    margin-top: auto;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.author-signature.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
