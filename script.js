@@ -139,6 +139,7 @@ function handlePlaylistClick(playlistId) {
 }
 
 // === Загрузка трека ===
+// === Загрузка трека ===
 function loadTrack() {
     const playlist = playlistsData[currentPlaylistId];
     const track = playlist.tracks[shuffledIndexes[currentTrackIndex]];
@@ -148,10 +149,12 @@ function loadTrack() {
     currentArtist.textContent = track.artist;
     currentPlaylistBadge.textContent = playlist.name;
     
+    // Показываем фиксированный плеер
     nowPlaying.style.display = 'flex';
     controls.style.display = 'flex';
     progressContainer.style.display = 'flex';
     shuffleInfo.style.display = 'block';
+    document.getElementById('player-wrapper').style.display = 'block';
     
     renderPlaylists();
 }
