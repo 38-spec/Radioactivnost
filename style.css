@@ -55,7 +55,7 @@ header h1 {
 .playlist-card {
     background: linear-gradient(135deg, var(--card-bg), var(--secondary-bg));
     border-radius: 16px;
-    padding: 12px;
+    padding: 11px;
     cursor: pointer;
     transition: all 0.25s ease;
     border: 2px solid transparent;
