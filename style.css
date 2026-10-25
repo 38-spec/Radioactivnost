@@ -1,459 +1,180 @@
-:root {
-    --bg-color: var(--tg-theme-bg-color, #0f0f0f);
-    --text-color: var(--tg-theme-text-color, #ffffff);
-    --hint-color: var(--tg-theme-hint-color, #8e8e93);
-    --button-color: var(--tg-theme-button-color, #ff6b35);
-    --secondary-bg: var(--tg-theme-secondary-bg-color, #1c1c1e);
-    --card-bg: var(--tg-theme-secondary-bg-color, #1c1c1e);
-}
-
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    min-height: 100vh;
-    padding: 20px 16px;
+  background: linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%);
+  color: #fff;
+  min-height: 100vh;
+  padding-bottom: 100px; /* отступ под фиксированный плеер */
 }
 
-.app-container {
-    max-width: 500px;
-    margin: 0 auto;
+.app-header {
+  padding: 30px 20px 10px;
+  text-align: center;
 }
 
-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-header h1 {
-    font-size: 28px;
-    font-weight: 800;
-    margin-bottom: 6px;
-    letter-spacing: -0.5px;
+.app-header h1 {
+  font-size: 28px;
+  background: linear-gradient(90deg, #ff6ec4, #7873f5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .subtitle {
-    color: var(--hint-color);
-    font-size: 14px;
+  margin-top: 6px;
+  color: #aaa;
+  font-size: 14px;
 }
 
-/* Сетка плейлистов */
-.playlists-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-    margin-bottom: 24px;
+/* Контейнер плейлистов — скроллится, чтобы все 5 влезли */
+.playlists-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  padding: 20px;
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+}
+
+/* Кастомный скроллбар */
+.playlists-container::-webkit-scrollbar {
+  width: 6px;
+}
+.playlists-container::-webkit-scrollbar-thumb {
+  background: #7873f5;
+  border-radius: 3px;
 }
 
 .playlist-card {
-    background: linear-gradient(135deg, var(--card-bg), var(--secondary-bg));
-    border-radius: 16px;
-    padding: 20px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    border: 2px solid transparent;
-    position: relative;
-    overflow: hidden;
-}
-
-.playlist-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, var(--button-color), transparent);
-    opacity: 0;
-    transition: opacity 0.25s ease;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  padding: 14px;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .playlist-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--button-color);
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.playlist-card.active {
-    border-color: var(--button-color);
-    box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+.playlist-cover {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin-bottom: 10px;
 }
 
-.playlist-card.active::before {
-    opacity: 0.15;
+.playlist-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
-.playlist-card-content {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.playlist-count {
+  font-size: 12px;
+  color: #aaa;
 }
 
-.playlist-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.playlist-name {
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.playlist-tracks-count {
-    font-size: 13px;
-    color: var(--hint-color);
-}
-
-.playlist-play-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: var(--button-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    color: white;
-    transition: transform 0.2s ease;
-}
-
-.playlist-card:hover .playlist-play-icon {
-    transform: scale(1.1);
-}
-
-.playlist-card.active .playlist-play-icon {
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.08); }
-}
-
-/* Сейчас играет */
-.now-playing {
-    background-color: var(--secondary-bg);
-    border-radius: 16px;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 16px;
-    animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.pulse-icon {
-    font-size: 28px;
-    animation: bounce 1s infinite;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+/* Фиксированный нижний мини-плеер */
+.mini-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: rgba(20, 20, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 100;
 }
 
 .track-info {
-    flex: 1;
-    min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.track-cover {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff6ec4, #7873f5);
+  flex-shrink: 0;
+}
+
+.track-meta {
+  min-width: 0;
 }
 
 .track-title {
-    font-size: 16px;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .track-artist {
-    font-size: 13px;
-    color: var(--hint-color);
-    margin-top: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 12px;
+  color: #aaa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.playlist-badge {
-    background-color: var(--button-color);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    white-space: nowrap;
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
-/* Кнопки управления */
-.controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 32px; /* Было 24 */
-    margin-bottom: 16px;
-    /* Добаил следующую строку*/
-    margin-top: 20px;
+.ctrl-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
 }
 
-.control-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    padding: 0;
-    border: none;
-    cursor: pointer; 
+.ctrl-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.control-btn:active {
-    transform: scale(0.92);
+.play-btn {
+  background: linear-gradient(135deg, #ff6ec4, #7873f5);
+  font-size: 16px;
 }
 
-.control-btn svg {
-    width: 24px;
-    height: 24px;
-    display: blocke;
+.play-btn:hover {
+  background: linear-gradient(135deg, #ff85d0, #8a85f7);
 }
 
-/* Крайнее добавление */
-.side-btn { 
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background-color: var(--secondary-bg);
-}
-
-.side-btn svg {
-    display: block;
-    margin: auto;
-}
-
-.side-btn:hover {
-    background-color: #2a2a2e;
-}
-
-/* Главная кнопка Play/Pause */
-.main-btn {
-    width: 80px;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: centre;
-    border-radius: 50%;
-    background-color: var(--secondary-bg);
-    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5);
-}
-
-.main-btn svg {
-    width: 32px;
-    height: 32px;
-}
-
-.main-btn:hover {
-    transform: scale(1.05);
-}
-
-/* Прогресс-бар */
-.progress-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.time {
-    font-size: 12px;
-    color: var(--hint-color);
-    min-width: 36px;
-    font-variant-numeric: tabular-nums;
-}
-
-.progress-bar-wrap {
-    flex: 1;
-}
-
-#progress-bar {
-    width: 100%;
-    height: 4px;
-    -webkit-appearance: none;
-    appearance: none;
-    background: var(--secondary-bg);
-    border-radius: 2px;
-    outline: none;
-    cursor: pointer;
-}
-
-#progress-bar::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--button-color);
-    cursor: pointer;
-}
-
-#progress-bar::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--button-color);
-    cursor: pointer;
-    border: none;
-}
-
-/* Shuffle индикатор */
-.shuffle-info {
-    text-align: center;
-    font-size: 12px;
-    color: var(--hint-color);
-    padding: 8px;
-}
-
-/* Кнопка Поделиться */
-.share-btn {
-    width: 56px; /* was 48 */
-    height: 56px; /* was 48 */
-    border-radius: 50%;
-    background-color: var(--secondary-bg);
-    color: var(--text-color);
-    font-size: 24px; /* was 20 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* margin-left: 12px; */
-    transition: all 0.2s ease;
-}
-
-.share-btn:hover {
-    background-color: var(--button-color);
-    color: white;
-    transform: scale(1.1);
-}
-
-.share-btn:active {
-    transform: scale(0.95);
-}
-
-/* Модальное окно шеринга */
-.share-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.share-modal-content {
-    background-color: var(--secondary-bg);
-    border-radius: 20px;
-    padding: 24px;
-    max-width: 90%;
-    width: 400px;
-    animation: slideUp 0.3s ease;
-}
-
-.share-modal-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    text-align: center;
-}
-
-.share-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.share-option {
-    background-color: var(--bg-color);
-    border: none;
-    border-radius: 12px;
-    padding: 16px;
-    color: var(--text-color);
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.2s ease;
-}
-
-.share-option:hover {
-    background-color: var(--button-color);
-    color: white;
-}
-
-.share-option-icon {
-    font-size: 24px;
-}
-
-.share-close {
-    margin-top: 16px;
-    width: 100%;
-    background: none;
-    border: 1px solid var(--hint-color);
-    border-radius: 12px;
-    padding: 12px;
-    color: var(--hint-color);
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.share-close:hover {
-    background-color: var(--bg-color);
-}
-
-/* Уведомление о копировании */
-.toast {
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--button-color);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 24px;
-    font-size: 14px;
-    font-weight: 600;
-    z-index: 1001;
-    animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
-}
-
-@keyframes toastIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-@keyframes toastOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
+@media (max-width: 480px) {
+  .playlists-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
