@@ -443,3 +443,23 @@ header h1 {
     from { opacity: 1; }
     to { opacity: 0; }
 }
+
+/* === ЖЕЛЕЗОБЕТОННАЯ ЗАЩИТА ОТ ФАНТОМНЫХ КЛИКОВ === */
+/* Когда на body есть класс modal-open — полностью отключаем взаимодействие с плейлистами */
+body.modal-open .playlists-grid {
+    pointer-events: none !important;
+}
+
+body.modal-open .playlist-card {
+    pointer-events: none !important;
+}
+
+/* Кнопки плеера должны оставаться кликабельными даже при открытой модалке */
+body.modal-open .player-wrapper {
+    pointer-events: auto;
+}
+
+body.modal-open .player-wrapper .control-btn {
+    pointer-events: auto;
+}
+
