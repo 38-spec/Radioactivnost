@@ -16,8 +16,8 @@ let isShareModalOpen = false;
 
 let playlistsData = {
     1: { name: "Ma Hood", spotifyUrl: "", tracks: [] },
-    2: { name: "Старая Школа", spotifyUrl: "https://open.spotify.com/playlist/4i0gEbdeQ0je5ANjmQCuGA", tracks: [] },
-    3: { name: "Новая Школа", spotifyUrl: "https://open.spotify.com/playlist/3XOU9kzckIsCcY02opnNf4", tracks: [] },
+    2: { name: "Classic Sound", spotifyUrl: "https://open.spotify.com/playlist/4i0gEbdeQ0je5ANjmQCuGA", tracks: [] },
+    3: { name: "New Wave", spotifyUrl: "https://open.spotify.com/playlist/3XOU9kzckIsCcY02opnNf4", tracks: [] },
     4: { name: "Chill Zone", spotifyUrl: "", tracks: [] },
     5: { name: "Beats", spotifyUrl: "", tracks: [] }
 };
