@@ -4,7 +4,7 @@ if (window.Telegram && window.Telegram.WebApp) {
     window.Telegram.WebApp.expand();
 }
 
-// ССЫЛКА НА ВАШУ GOOGLE ТАБЛИЦУ (замените на вашу!)
+// ССЫЛКА НА ВАШУ GOOGLE ТАБЛИЦУ
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?output=csv';
 
 // Состояние
@@ -33,14 +33,39 @@ const progressBar = document.getElementById('progress-bar');
 const currentTimeEl = document.getElementById('current-time');
 const durationEl = document.getElementById('duration');
 
-// Парсинг CSV
+// Парсинг CSV (улучшенный)
 function parseCSV(text) {
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    console.log('Получен CSV:', text.substring(0, 200));
+    
+    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(line => line);
+    console.log('Строк в CSV:', lines.length);
+    
+    if (lines.length < 2) {
+        throw new Error('CSV пуст или имеет неверный формат');
+    }
+    
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+    console.log('Заголовки:', headers);
     
     const data = [];
     for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+        // Разбиваем с учётом кавычек
+        const values = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let char of lines[i]) {
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                values.push(current.trim().replace(/^"|"$/g, ''));
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        values.push(current.trim().replace(/^"|"$/g, ''));
+        
         if (values.length < headers.length) continue;
         
         const obj = {};
@@ -49,6 +74,8 @@ function parseCSV(text) {
         });
         data.push(obj);
     }
+    
+    console.log('Распаршенные данные:', data);
     return data;
 }
 
@@ -56,16 +83,20 @@ function parseCSV(text) {
 function buildPlaylists(data) {
     const playlistMap = {};
     
-    data.forEach(row => {
+    data.forEach((row, index) => {
         const playlistId = row.playlistId || row.playlistid;
         const artist = row.artist || '';
         const title = row.title || '';
         const src = row.src || '';
         
-        if (!playlistId || !artist || !title) return;
+        console.log(`Строка ${index}:`, { playlistId, artist, title, src: src ? 'есть' : 'нет' });
+        
+        if (!playlistId || !artist || !title) {
+            console.log('Пропущена строка - нет обязательных полей');
+            return;
+        }
         
         if (!playlistMap[playlistId]) {
-            // Определяем название и эмодзи плейлиста по ID
             const playlistInfo = getPlaylistInfo(playlistId);
             playlistMap[playlistId] = {
                 id: playlistId,
@@ -85,16 +116,18 @@ function buildPlaylists(data) {
         }
     });
     
+    console.log('Итоговые плейлисты:', playlistMap);
     return Object.values(playlistMap);
 }
 
-// Информация о плейлистах (названия, цвета, эмодзи)
+// Информация о плейлистах
 function getPlaylistInfo(id) {
     const playlists = {
         '1': { title: 'Ma Hood', emoji: '☀️', color: 'linear-gradient(135deg, #f6d365, #fda085)' },
         '2': { title: 'Старый звук', emoji: '🎧', color: 'linear-gradient(135deg, #141e30, #243b55)' },
-        '3': { title: 'Chill Zone', emoji: '', color: 'linear-gradient(135deg, #a8edea, #fed6e3)' },
-        '4': { title: 'Beats', emoji: '🔥', color: 'linear-gradient(135deg, #f093fb, #f5576c)' }
+        '3': { title: 'Late Night', emoji: '🌙', color: 'linear-gradient(135deg, #141e30, #243b55)' },
+        '4': { title: 'Chill Zone', emoji: '🍃', color: 'linear-gradient(135deg, #a8edea, #fed6e3)' },
+        '5': { title: 'Beats', emoji: '🔥', color: 'linear-gradient(135deg, #f093fb, #f5576c)' }
     };
     
     return playlists[id] || { 
@@ -107,14 +140,38 @@ function getPlaylistInfo(id) {
 // Загрузка данных из Google Sheets
 async function loadPlaylistsFromSheet() {
     try {
+        container.innerHTML = '<p style="text-align: center; color: var(--hint-color);">Загрузка...</p>';
+        
+        console.log('Загрузка с URL:', SHEET_URL);
+        
         const response = await fetch(SHEET_URL);
+        console.log('Статус ответа:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ошибка: ${response.status}`);
+        }
+        
         const csvText = await response.text();
         const data = parseCSV(csvText);
         playlists = buildPlaylists(data);
+        
+        console.log('Загружено плейлистов:', playlists.length);
         renderPlaylists();
+        
     } catch (error) {
-        console.error('Ошибка загрузки плейлистов:', error);
-        container.innerHTML = '<p style="text-align: center; color: var(--hint-color);">Ошибка загрузки данных</p>';
+        console.error('Ошибка загрузки:', error);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 20px; color: #ff6b6b;">
+                <p style="margin-bottom: 10px;">❌ Ошибка загрузки</p>
+                <p style="font-size: 12px; color: var(--hint-color);">${error.message}</p>
+                <p style="font-size: 11px; margin-top: 10px;">Проверьте:</p>
+                <ul style="font-size: 11px; text-align: left; display: inline-block; margin-top: 5px;">
+                    <li>Таблица опубликована (Файл → Поделиться → Опубликовать)</li>
+                    <li>URL правильный (output=csv)</li>
+                    <li>Есть доступ по ссылке</li>
+                </ul>
+            </div>
+        `;
     }
 }
 
