@@ -20,7 +20,7 @@ body {
     color: var(--text-color);
     min-height: 100vh;
     padding: 20px 16px;
-    padding-bottom: 320px; /* Отступ под фиксированный плеер */
+    padding-bottom: 340px; /* Отступ под фиксированный плеер */
 }
 
 .app-container {
@@ -30,12 +30,7 @@ body {
 
 header {
     text-align: center;
-    margin-bottom: 20px;
-    position: sticky;
-    top: 0;
-    background-color: var(--bg-color);
-    z-index: 10;
-    padding-bottom: 10px;
+    margin-bottom: 30px;
 }
 
 header h1 {
@@ -50,30 +45,12 @@ header h1 {
     font-size: 14px;
 }
 
-/* === СКРОЛЛЯЩИЕСЯ ПЛЕЙЛИСТЫ === */
+/* Сетка плейлистов */
 .playlists-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 14px;
-    margin-bottom: 20px;
-    max-height: calc(100vh - 380px); /* Фиксированная высота */
-    overflow-y: auto; /* Включаем скролл */
-    padding-right: 4px; /* Место для скроллбара */
-}
-
-/* Скрываем скроллбар для эстетики */
-.playlists-grid::-webkit-scrollbar {
-    width: 4px;
-}
-
-.playlists-grid::-webkit-scrollbar-track {
-    background: var(--secondary-bg);
-    border-radius: 2px;
-}
-
-.playlists-grid::-webkit-scrollbar-thumb {
-    background: var(--button-color);
-    border-radius: 2px;
+    margin-bottom: 24px;
 }
 
 .playlist-card {
@@ -163,7 +140,7 @@ header h1 {
     50% { transform: scale(1.08); }
 }
 
-/* === ФИКСИРОВАННЫЙ НИЖНИЙ ПЛЕЕР === */
+/* ФИКСИРОВАННЫЙ НИЖНИЙ ПЛЕЕР */
 .player-wrapper {
     position: fixed;
     bottom: 0;
@@ -179,7 +156,6 @@ header h1 {
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* Сейчас играет */
 .now-playing {
     background-color: var(--secondary-bg);
     border-radius: 16px;
@@ -188,12 +164,6 @@ header h1 {
     align-items: center;
     gap: 14px;
     margin-bottom: 16px;
-    animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .pulse-icon {
@@ -238,7 +208,6 @@ header h1 {
     white-space: nowrap;
 }
 
-/* Кнопки управления */
 .controls {
     display: flex;
     justify-content: center;
@@ -264,12 +233,6 @@ header h1 {
     transform: scale(0.92);
 }
 
-.control-btn svg {
-    width: 24px;
-    height: 24px;
-    display: block;
-}
-
 .side-btn { 
     width: 56px;
     height: 56px;
@@ -277,37 +240,14 @@ header h1 {
     background-color: var(--secondary-bg);
 }
 
-.side-btn svg {
-    display: block;
-    margin: auto;
-}
-
-.side-btn:hover {
-    background-color: #2a2a2e;
-}
-
-/* Главная кнопка Play/Pause */
 .main-btn {
     width: 80px;
     height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     border-radius: 50%;
     background-color: var(--secondary-bg);
     box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5);
 }
 
-.main-btn svg {
-    width: 32px;
-    height: 32px;
-}
-
-.main-btn:hover {
-    transform: scale(1.05);
-}
-
-/* Прогресс-бар */
 .progress-container {
     display: flex;
     align-items: center;
@@ -339,7 +279,6 @@ header h1 {
 
 #progress-bar::-webkit-slider-thumb {
     -webkit-appearance: none;
-    appearance: none;
     width: 14px;
     height: 14px;
     border-radius: 50%;
@@ -347,16 +286,6 @@ header h1 {
     cursor: pointer;
 }
 
-#progress-bar::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--button-color);
-    cursor: pointer;
-    border: none;
-}
-
-/* Shuffle индикатор */
 .shuffle-info {
     text-align: center;
     font-size: 12px;
@@ -364,31 +293,6 @@ header h1 {
     padding: 8px;
 }
 
-/* Кнопка Поделиться */
-.share-btn {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background-color: var(--secondary-bg);
-    color: var(--text-color);
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.share-btn:hover {
-    background-color: var(--button-color);
-    color: white;
-    transform: scale(1.1);
-}
-
-.share-btn:active {
-    transform: scale(0.95);
-}
-
-/* Модальное окно шеринга */
 .share-modal {
     position: fixed;
     top: 0;
@@ -400,12 +304,6 @@ header h1 {
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 
 .share-modal-content {
@@ -414,7 +312,6 @@ header h1 {
     padding: 24px;
     max-width: 90%;
     width: 400px;
-    animation: slideUp 0.3s ease;
 }
 
 .share-modal-title {
@@ -441,16 +338,11 @@ header h1 {
     display: flex;
     align-items: center;
     gap: 12px;
-    transition: all 0.2s ease;
 }
 
 .share-option:hover {
     background-color: var(--button-color);
     color: white;
-}
-
-.share-option-icon {
-    font-size: 24px;
 }
 
 .share-close {
@@ -465,14 +357,9 @@ header h1 {
     cursor: pointer;
 }
 
-.share-close:hover {
-    background-color: var(--bg-color);
-}
-
-/* Уведомление о копировании */
 .toast {
     position: fixed;
-    bottom: 340px; /* Над плеером */
+    bottom: 360px;
     left: 50%;
     transform: translateX(-50%);
     background-color: var(--button-color);
@@ -494,3 +381,4 @@ header h1 {
     from { opacity: 1; }
     to { opacity: 0; }
 }
+
