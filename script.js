@@ -373,14 +373,19 @@ shareBtn.addEventListener('click', (e) => {
     }
 });
 
-function showLinkModal(title, options) {
-    closeShareModal();
-    const validOptions = options.filter(opt => opt.url && opt.url.trim() !== "");
-
-    if (validOptions.length === 0) {
-        showToast('Для этого трека ссылки не добавлены');
-        return;
+function closeShareModal() {
+    const modal = document.querySelector('.share-modal');
+    if (modal) {
+        // Сначала делаем модалку невидимой для кликов
+        modal.style.pointerEvents = 'none';
+        modal.remove();
     }
+    
+    // УВЕЛИЧИВАЕМ ЗАДЕРЖКУ до 500ms для надёжности
+    setTimeout(() => {
+        setModalState(false);
+    }, 500);
+}
 
     setModalState(true);
 
