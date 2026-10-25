@@ -12,7 +12,7 @@ const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq
 
 // Глобальные переменные
 let artistLinksData = [];
-let isShareModalOpen = false;
+let isShareModalOpen = false; // Флаг защиты от фантомных кликов
 
 let playlistsData = {
     1: { name: "Ma Hood", spotifyUrl: "", tracks: [] },
@@ -43,21 +43,16 @@ const shareBtn = document.getElementById('share-btn');
 const progressBar = document.getElementById('progress-bar');
 const currentTimeEl = document.getElementById('current-time');
 const durationEl = document.getElementById('duration');
-const iconPlay = document.getElementById('icon-play');
-const iconPause = document.getElementById('icon-pause');
 const playerWrapper = document.getElementById('player-wrapper');
 
-// === УРОВЕНЬ 1: Глобальный перехватчик в capture phase ===
-// Он срабатывает ДО всех остальных обработчиков и блокирует клики по плейлистам
+// === УРОВЕНЬ 1: Глобальный перехватчик (Capture Phase) ===
+// Блокирует ЛЮБОЙ клик по плейлисту, если открыта модалка
 document.addEventListener('click', (e) => {
-    if (isShareModalOpen) {
-        // Если клик по плейлисту — блокируем
-        if (e.target.closest('.playlist-card')) {
-            e.stopImmediatePropagation();
-            e.preventDefault();
-        }
+    if (isShareModalOpen && e.target.closest('.playlist-card')) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
     }
-}, true); // true = capture phase
+}, true);
 
 // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
 function createShuffledIndexes(length) {
@@ -76,18 +71,18 @@ function formatTime(seconds) {
     return `${min}:${sec < 10 ? '0' : ''}${sec}`;
 }
 
-// === УРОВЕНЬ 2: Установка флага на body для CSS-блокировки ===
-function setModalState(open) {
-    isShareModalOpen = open;
-    if (open) {
+function setModalState(isOpen) {
+    isShareModalOpen = isOpen;
+    if (isOpen) {
         document.body.classList.add('modal-open');
     } else {
         document.body.classList.remove('modal-open');
     }
-}// === ОТРИСОВКА ПЛЕЙЛИСТОВ (НОВАЯ ЛОГИКА) ===
+}
+
+// === ОТРИСОВКА И UI ===
 function renderPlaylists() {
     if (!playlistsGrid) return;
-    
     playlistsGrid.innerHTML = '';
     
     Object.keys(playlistsData).forEach(id => {
@@ -113,6 +108,7 @@ function renderPlaylists() {
             </div>
         `;
         
+        // УРОВЕНЬ 2: Локальная проверка флага
         card.addEventListener('click', (e) => {
             if (isShareModalOpen) {
                 e.stopImmediatePropagation();
@@ -126,28 +122,36 @@ function renderPlaylists() {
     });
 }
 
-// === ОБНОВЛЕНИЕ АКТИВНОГО ПЛЕЙЛИСТА (БЕЗ ПОЛНОЙ ПЕРЕРИСОВКИ) ===
 function setActivePlaylist(playlistId) {
     if (!playlistsGrid) return;
     
-    // Снимаем active со ВСЕХ карточек
+    // Снимаем active со всех
     const allCards = playlistsGrid.querySelectorAll('.playlist-card');
     allCards.forEach(card => {
         card.classList.remove('active');
-        
-        // Обновляем иконку на play
         const iconElement = card.querySelector('.playlist-play-icon');
         if (iconElement) {
             iconElement.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
         }
     });
     
-    // Добавляем active только на нужный плейлист
+    // Добавляем active на нужный
     const activeCard = playlistsGrid.querySelector(`[data-id="${playlistId}"]`);
     if (activeCard) {
         activeCard.classList.add('active');
-        
-        // Обновляем иконку
+        const iconElement = activeCard.querySelector('.playlist-play-icon');
+        if (iconElement) {
+            iconElement.innerHTML = isPlaying
+                ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'
+                : '<svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+        }
+    }
+}
+
+function updateActivePlaylistIcon() {
+    if (!playlistsGrid || !currentPlaylistId) return;
+    const activeCard = playlistsGrid.querySelector('.playlist-card.active');
+    if (activeCard) {
         const iconElement = activeCard.querySelector('.playlist-play-icon');
         if (iconElement) {
             iconElement.innerHTML = isPlaying
@@ -163,7 +167,7 @@ function handlePlaylistClick(playlistId) {
     
     const playlist = playlistsData[playlistId];
     if (!playlist || playlist.tracks.length === 0) {
-        showToast('Нет треков');
+        showToast('В этом плейлисте пока нет треков');
         return;
     }
 
@@ -176,18 +180,43 @@ function handlePlaylistClick(playlistId) {
     shuffledIndexes = createShuffledIndexes(playlist.tracks.length);
     currentTrackIndex = 0;
     
-    // Сначала обновляем UI
     setActivePlaylist(playlistId);
     loadTrack();
     playTrack();
 }
 
+function loadTrack() {
+    if (!currentPlaylistId || !playlistsData[currentPlaylistId]) return;
+    
+    const playlist = playlistsData[currentPlaylistId];
+    const trackIndex = shuffledIndexes[currentTrackIndex];
+    
+    if (trackIndex === undefined || trackIndex >= playlist.tracks.length) return;
+    
+    const track = playlist.tracks[trackIndex];
+    if (!track) return;
+    
+    audio.src = track.src;
+    currentTitle.textContent = track.title;
+    currentArtist.textContent = track.artist;
+    currentPlaylistBadge.textContent = playlist.name;
+    
+    // Гарантированно показываем плеер
+    if (nowPlaying) nowPlaying.style.display = 'flex';
+    if (controls) controls.style.display = 'flex';
+    if (progressContainer) progressContainer.style.display = 'flex';
+    if (shuffleInfo) shuffleInfo.style.display = 'block';
+    if (playerWrapper) playerWrapper.style.display = 'block';
+}
+
 function playTrack() {
     audio.play().then(() => {
         isPlaying = true;
-        // Обновляем только иконку активного плейлиста
         updateActivePlaylistIcon();
-    }).catch(e => console.error('Play error:', e));
+    }).catch(e => {
+        console.error('Ошибка воспроизведения:', e);
+        showToast('Ошибка воспроизведения');
+    });
 }
 
 function pauseTrack() {
@@ -195,21 +224,6 @@ function pauseTrack() {
     isPlaying = false;
     updateActivePlaylistIcon();
 }
-
-function updateActivePlaylistIcon() {
-    if (!playlistsGrid || !currentPlaylistId) return;
-    
-    const activeCard = playlistsGrid.querySelector('.playlist-card.active');
-    if (activeCard) {
-        const iconElement = activeCard.querySelector('.playlist-play-icon');
-        if (iconElement) {
-            iconElement.innerHTML = isPlaying
-                ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'
-                : '<svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
-        }
-    }
-}
-
 
 function togglePlay() {
     if (isPlaying) pauseTrack();
@@ -264,17 +278,14 @@ async function loadArtistLinks() {
     try {
         const response = await fetch(SHEET_URL);
         const text = await response.text();
-        
         const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonStr);
-        
         const cols = data.table.cols.map(c => c.label);
         
         artistLinksData = data.table.rows.map(row => {
             const obj = {};
             row.c.forEach((cell, index) => {
                 let colName = cols[index] ? String(cols[index]).trim().toLowerCase() : "";
-                
                 if (colName.includes('playlist') || colName === 'id') colName = 'playlistid';
                 else if (colName.includes('src') || colName.includes('audio') || colName.includes('mp3')) colName = 'src';
                 else if (colName.includes('title')) colName = 'title';
@@ -283,7 +294,6 @@ async function loadArtistLinks() {
                 
                 obj[colName] = cell && cell.v ? String(cell.v).trim() : "";
             });
-            
             if (obj.playlistid) obj.playlistId = parseInt(obj.playlistid);
             return obj;
         });
@@ -295,13 +305,11 @@ async function loadArtistLinks() {
 function buildPlaylistsFromSheet() {
     artistLinksData.forEach(row => {
         const pId = row.playlistId;
-        
         if (playlistsData[pId] && row.title && row.artist && row.src) {
             let finalSrc = row.src;
             if (!finalSrc.startsWith('http')) {
                 finalSrc = `${R2_BASE_URL}${finalSrc.startsWith('/') ? '' : '/'}${finalSrc}`;
             }
-            
             playlistsData[pId].tracks.push({
                 title: row.title,
                 artist: row.artist,
@@ -313,9 +321,7 @@ function buildPlaylistsFromSheet() {
 
 function getLinksForCurrentTrack() {
     const playlist = playlistsData[currentPlaylistId];
-    if (!playlist || !playlist.tracks[shuffledIndexes[currentTrackIndex]]) {
-        return {};
-    }
+    if (!playlist || !playlist.tracks[shuffledIndexes[currentTrackIndex]]) return {};
     
     const track = playlist.tracks[shuffledIndexes[currentTrackIndex]];
     const searchTitle = track.title.trim().toLowerCase();
@@ -328,20 +334,19 @@ function getLinksForCurrentTrack() {
     }) || {};
 }
 
-// === КНОПКА ПОДЕЛИТЬСЯ ===
+// === МОДАЛЬНОЕ ОКНО SHARE ===
 shareBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (!currentPlaylistId) {
-        showToast('Выберите трек!');
+        showToast('Сначала выбери трек!');
         return;
     }
     
     const links = getLinksForCurrentTrack();
-    
     if (currentPlaylistId === 1) {
         showLinkModal("Исполнитель", [
             { icon: "", text: "Instagram", url: links.instagram },
-            { icon: "", text: "Яндекс Музыка", url: links.yandex },
+            { icon: "🎵", text: "Яндекс Музыка", url: links.yandex },
             { icon: "🎧", text: "Spotify", url: links.spotify },
             { icon: "▶️", text: "YouTube", url: links.youtube }
         ]);
@@ -353,23 +358,19 @@ shareBtn.addEventListener('click', (e) => {
     }
 });
 
-// === МОДАЛЬНОЕ ОКНО ===
 function showLinkModal(title, options) {
     closeShareModal();
-    
     const validOptions = options.filter(opt => opt.url && opt.url.trim() !== "");
 
     if (validOptions.length === 0) {
-        showToast('Нет ссылок');
+        showToast('Для этого трека ссылки не добавлены');
         return;
     }
 
-    // Устанавливаем флаг ДО создания модалки
-    setModalState(true);
+    setModalState(true); // ВКЛЮЧАЕМ ЗАЩИТУ
 
     const modal = document.createElement('div');
     modal.className = 'share-modal'; 
-    
     modal.innerHTML = `
         <div class="share-modal-content">
             <div class="share-modal-title">${title}</div>
@@ -387,44 +388,30 @@ function showLinkModal(title, options) {
     
     document.body.appendChild(modal);
     
-    modal.querySelector('.share-modal-content').addEventListener('click', e => {
-        e.stopPropagation();
-        e.preventDefault();
-    });
+    modal.querySelector('.share-modal-content').addEventListener('click', e => { e.stopPropagation(); e.preventDefault(); });
     
     modal.querySelectorAll('.share-option').forEach(btn => {
         btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            e.preventDefault();
+            e.stopPropagation(); e.preventDefault();
             const url = this.getAttribute('data-url');
-            if (url) {
-                tg.openLink(url);
-                closeShareModal();
-            }
+            if (url) { tg.openLink(url); closeShareModal(); }
         });
     });
     
     modal.querySelector('.share-close').addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        closeShareModal();
+        e.stopPropagation(); e.preventDefault(); closeShareModal();
     });
     
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            e.stopPropagation();
-            e.preventDefault();
-            closeShareModal();
-        }
+        if (e.target === modal) { e.stopPropagation(); e.preventDefault(); closeShareModal(); }
     });
 }
 
 function closeShareModal() {
     const modal = document.querySelector('.share-modal');
-    if (modal) {
-        modal.remove();
-    }
-    // Снимаем флаг с задержкой — защита от "фантомного" клика при отпускании пальца
+    if (modal) modal.remove();
+    
+    // УРОВЕНЬ 3: Задержка снятия флага, чтобы "отпускание" пальца не зарегистрировалось как клик
     setTimeout(() => {
         setModalState(false);
     }, 400);
@@ -444,10 +431,10 @@ async function initApp() {
         await loadArtistLinks();
         buildPlaylistsFromSheet();
         renderPlaylists();
-        console.log('✅ App ready, playlists:', Object.keys(playlistsData).length);
+        console.log('✅ App ready. Плейлистов:', Object.keys(playlistsData).length);
     } catch (error) {
         console.error('Init error:', error);
-        showToast('Ошибка загрузки');
+        showToast('Ошибка загрузки приложения');
     }
 }
 
