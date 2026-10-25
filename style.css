@@ -18,18 +18,23 @@
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
-    min-height: 100vh;
-    padding: 20px 16px;
+    height: 100dvh; /* Используем dvh для корректной работы на мобильных */
+    overflow: hidden; /* Запрещаем скролл всего body */
 }
 
 .app-container {
     max-width: 500px;
     margin: 0 auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
 }
 
 header {
     text-align: center;
-    margin-bottom: 30px;
+    padding: 20px 16px 10px;
+    flex-shrink: 0;
 }
 
 header h1 {
@@ -44,12 +49,20 @@ header h1 {
     font-size: 14px;
 }
 
-/* Сетка плейлистов */
+/* === ГЛАВНОЕ ИЗМЕНЕНИЕ: Скроллящаяся сетка === */
 .playlists-grid {
-    display: grid;
-    grid-template-columns: 1fr;
+    flex: 1; /* Занимает всё доступное пространство */
+    overflow-y: auto; /* Включает скролл только для этого блока */
+    padding: 10px 16px 120px; /* Большой отступ снизу, чтобы контент не перекрывался плеером */
+    display: flex;
+    flex-direction: column;
     gap: 14px;
-    margin-bottom: 24px;
+    
+    /* Скрываем скроллбар для эстетики, но оставляем функционал */
+    scrollbar-width: none; 
+}
+.playlists-grid::-webkit-scrollbar {
+    display: none;
 }
 
 .playlist-card {
@@ -61,15 +74,13 @@ header h1 {
     border: 2px solid transparent;
     position: relative;
     overflow: hidden;
+    flex-shrink: 0; /* Запрещаем сжатие карточек */
 }
 
 .playlist-card::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: linear-gradient(135deg, var(--button-color), transparent);
     opacity: 0;
     transition: opacity 0.25s ease;
@@ -139,31 +150,46 @@ header h1 {
     50% { transform: scale(1.08); }
 }
 
-/* Сейчас играет */
-.now-playing {
-    background-color: var(--secondary-bg);
-    border-radius: 16px;
+/* === ФИКСИРОВАННЫЙ НИЖНИЙ ПЛЕЕР === */
+.fixed-player {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 500px;
+    background-color: var(--bg-color);
+    border-top: 1px solid var(--secondary-bg);
     padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 16px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom)); /* Учет челки iPhone */
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
     animation: slideUp 0.3s ease;
 }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateX(-50%) translateY(100%); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.now-playing {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
 }
 
 .pulse-icon {
-    font-size: 28px;
-    animation: bounce 1s infinite;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    background: var(--secondary-bg);
+    transition: background 0.3s ease;
 }
 
 .track-info {
@@ -198,75 +224,53 @@ header h1 {
     white-space: nowrap;
 }
 
-/* Кнопки управления */
 .controls {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 32px; /* Было 24 */
-    margin-bottom: 16px;
-    /* Добаил следующую строку*/
-    margin-top: 20px;
+    gap: 32px;
+    margin-bottom: 12px;
 }
 
 .control-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 60px;
-    height: 60px;
     border-radius: 50%;
-    padding: 0;
     border: none;
-    cursor: pointer; 
+    cursor: pointer;
+    transition: transform 0.1s ease, background-color 0.2s;
 }
 
 .control-btn:active {
     transform: scale(0.92);
 }
 
-.control-btn svg {
-    width: 24px;
-    height: 24px;
-    display: blocke;
-}
-
-/* Крайнее добавление */
 .side-btn { 
     width: 56px;
     height: 56px;
-    border-radius: 50%;
     background-color: var(--secondary-bg);
-}
-
-.side-btn svg {
-    display: block;
-    margin: auto;
+    color: var(--text-color);
 }
 
 .side-btn:hover {
     background-color: #2a2a2e;
 }
 
-/* Главная кнопка Play/Pause */
 .main-btn {
-    width: 80px;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: centre;
-    border-radius: 50%;
-    background-color: var(--secondary-bg);
-    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5);
-}
-
-.main-btn svg {
-    width: 32px;
-    height: 32px;
+    width: 72px;
+    height: 72px;
+    background-color: var(--button-color);
+    color: white;
+    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
 }
 
 .main-btn:hover {
     transform: scale(1.05);
+}
+
+.main-btn:active {
+    transform: scale(0.95);
 }
 
 /* Прогресс-бар */
@@ -274,7 +278,6 @@ header h1 {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 12px;
 }
 
 .time {
@@ -301,7 +304,6 @@ header h1 {
 
 #progress-bar::-webkit-slider-thumb {
     -webkit-appearance: none;
-    appearance: none;
     width: 14px;
     height: 14px;
     border-radius: 50%;
@@ -316,144 +318,4 @@ header h1 {
     background: var(--button-color);
     cursor: pointer;
     border: none;
-}
-
-/* Shuffle индикатор */
-.shuffle-info {
-    text-align: center;
-    font-size: 12px;
-    color: var(--hint-color);
-    padding: 8px;
-}
-
-/* Кнопка Поделиться */
-.share-btn {
-    width: 56px; /* was 48 */
-    height: 56px; /* was 48 */
-    border-radius: 50%;
-    background-color: var(--secondary-bg);
-    color: var(--text-color);
-    font-size: 24px; /* was 20 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* margin-left: 12px; */
-    transition: all 0.2s ease;
-}
-
-.share-btn:hover {
-    background-color: var(--button-color);
-    color: white;
-    transform: scale(1.1);
-}
-
-.share-btn:active {
-    transform: scale(0.95);
-}
-
-/* Модальное окно шеринга */
-.share-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.share-modal-content {
-    background-color: var(--secondary-bg);
-    border-radius: 20px;
-    padding: 24px;
-    max-width: 90%;
-    width: 400px;
-    animation: slideUp 0.3s ease;
-}
-
-.share-modal-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    text-align: center;
-}
-
-.share-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.share-option {
-    background-color: var(--bg-color);
-    border: none;
-    border-radius: 12px;
-    padding: 16px;
-    color: var(--text-color);
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.2s ease;
-}
-
-.share-option:hover {
-    background-color: var(--button-color);
-    color: white;
-}
-
-.share-option-icon {
-    font-size: 24px;
-}
-
-.share-close {
-    margin-top: 16px;
-    width: 100%;
-    background: none;
-    border: 1px solid var(--hint-color);
-    border-radius: 12px;
-    padding: 12px;
-    color: var(--hint-color);
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.share-close:hover {
-    background-color: var(--bg-color);
-}
-
-/* Уведомление о копировании */
-.toast {
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--button-color);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 24px;
-    font-size: 14px;
-    font-weight: 600;
-    z-index: 1001;
-    animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
-}
-
-@keyframes toastIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-@keyframes toastOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
 }
