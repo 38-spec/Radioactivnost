@@ -1,72 +1,40 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Радиоактивность 📻</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music App</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="app-container">
-        <header>
-            <h1>Радиоактивность 📻</h1>
-            <p class="subtitle">Тапай на плэйлист и наслаждайся музыкой</p>
-        </header>
+  <header class="app-header">
+    <h1>🎧 My Playlists</h1>
+    <p class="subtitle">Выбери настроение</p>
+  </header>
 
-        <!-- Карточки плейлистов -->
-        <div class="playlists-grid" id="playlists-grid">
-            <!-- Карточки генерируются через JS -->
-        </div>
+  <main class="playlists-container" id="playlistsContainer">
+    <!-- Плейлисты рендерятся через JS -->
+  </main>
 
-        <!-- Индикатор текущего трека -->
-        <div class="now-playing" id="now-playing" style="display: none;">
-            <div class="pulse-icon">🎵</div>
-            <div class="track-info">
-                <div class="track-title" id="current-title">—</div>
-                <div class="track-artist" id="current-artist">—</div>
-            </div>
-            <div class="playlist-badge" id="current-playlist">—</div>
-        </div>
-
-        <!-- Элементы управления -->
-<div class="controls" id="controls" style="display: none;">
-    <button class="control-btn side-btn" id="prev-btn">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
-        </svg>
-    </button>
-    <button class="control-btn main-btn" id="play-btn">
-        <svg id="icon-play" class="play-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8 5v14l11-7z" />
-        </svg>
-        <svg id="icon-pause" class="pause-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
-            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-        </svg>
-    </button>
-    <button class="control-btn side-btn" id="share-btn">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
-        </svg>
-    </button>
-</div>
-
-        <!-- Прогресс-бар -->
-        <div class="progress-container" id="progress-container" style="display: none;">
-            <span class="time" id="current-time">0:00</span>
-            <div class="progress-bar-wrap">
-                <input type="range" id="progress-bar" value="0" max="100" min="0">
-            </div>
-            <span class="time" id="duration">0:00</span>
-        </div>
-
-        <!-- Shuffle индикатор -->
-        <div class="shuffle-info" id="shuffle-info" style="display: none;">
-            🔀 Случайный порядок без повторов
-        </div>
+  <!-- Фиксированный нижний плеер -->
+  <footer class="mini-player" id="miniPlayer">
+    <div class="track-info">
+      <div class="track-cover" id="trackCover"></div>
+      <div class="track-meta">
+        <div class="track-title" id="trackTitle">Не выбран трек</div>
+        <div class="track-artist" id="trackArtist">—</div>
+      </div>
     </div>
 
-    <audio id="audio-player" preload="auto"></audio>
-    <script src="script.js"></script>
+    <div class="player-controls">
+      <button class="ctrl-btn" id="prevBtn" title="Предыдущий трек">⏮</button>
+      <button class="ctrl-btn play-btn" id="playPauseBtn" title="Пауза/Воспроизведение">▶</button>
+      <button class="ctrl-btn" id="shareBtn" title="Поделиться">🔗</button>
+    </div>
+
+    <audio id="audioPlayer"></audio>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
