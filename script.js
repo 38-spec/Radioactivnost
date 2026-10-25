@@ -12,6 +12,8 @@ const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq
 
 // Глобальные переменные
 let artistLinksData = [];
+let isShareModalOpen = false; // Флаг для блокировки кликов при открытом модальном окне
+
 let playlistsData = {
     1: { name: "Ma Hood", spotifyUrl: "", tracks: [] },
     2: { name: "Старая Школа", spotifyUrl: "https://open.spotify.com/playlist/4i0gEbdeQ0je5ANjmQCuGA", tracks: [] },
@@ -45,7 +47,7 @@ const iconPlay = document.getElementById('icon-play');
 const iconPause = document.getElementById('icon-pause');
 const playerWrapper = document.getElementById('player-wrapper');
 
-// === SHUFFLE ===
+// === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
 function createShuffledIndexes(length) {
     const indexes = Array.from({ length }, (_, i) => i);
     for (let i = indexes.length - 1; i > 0; i--) {
@@ -55,7 +57,14 @@ function createShuffledIndexes(length) {
     return indexes;
 }
 
-// === ОТРИСОВКА ===
+function formatTime(seconds) {
+    if (isNaN(seconds)) return '0:00';
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60);
+    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+}
+
+// === ОТРИСОВКА ПЛЕЙЛИСТОВ ===
 function renderPlaylists() {
     if (!playlistsGrid) return;
     
@@ -84,8 +93,13 @@ function renderPlaylists() {
             </div>
         `;
         
+        // ЗАЩИТА ОТ ФАНТОМНЫХ КЛИКОВ
         card.addEventListener('click', (e) => {
-            e.stopPropagation();
+            if (isShareModalOpen) {
+                e.preventDefault();
+                e.stopPropagation();
+                return; // Игнорируем клик, если модальное окно было открыто
+            }
             handlePlaylistClick(Number(id));
         });
         
@@ -93,6 +107,7 @@ function renderPlaylists() {
     });
 }
 
+// === ЛОГИКА ВОСПРОИЗВЕДЕНИЯ ===
 function handlePlaylistClick(playlistId) {
     const playlist = playlistsData[playlistId];
     if (!playlist || playlist.tracks.length === 0) {
@@ -186,6 +201,7 @@ function prevTrack() {
     playTrack();
 }
 
+// === ОБРАБОТЧИКИ СОБЫТИЙ АУДИО И КНОПОК ===
 playBtn.addEventListener('click', togglePlay);
 prevBtn.addEventListener('click', prevTrack);
 
@@ -208,14 +224,7 @@ progressBar.addEventListener('input', () => {
     }
 });
 
-function formatTime(seconds) {
-    if (isNaN(seconds)) return '0:00';
-    const min = Math.floor(seconds / 60);
-    const sec = Math.floor(seconds % 60);
-    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-}
-
-// === GOOGLE SHEETS ===
+// === ЗАГРУЗКА ДАННЫХ ИЗ GOOGLE SHEETS ===
 async function loadArtistLinks() {
     try {
         const response = await fetch(SHEET_URL);
@@ -243,7 +252,6 @@ async function loadArtistLinks() {
             if (obj.playlistid) obj.playlistId = parseInt(obj.playlistid);
             return obj;
         });
-        
     } catch (error) {
         console.error("Sheet load error:", error);
     }
@@ -255,7 +263,6 @@ function buildPlaylistsFromSheet() {
         
         if (playlistsData[pId] && row.title && row.artist && row.src) {
             let finalSrc = row.src;
-            
             if (!finalSrc.startsWith('http')) {
                 finalSrc = `${R2_BASE_URL}${finalSrc.startsWith('/') ? '' : '/'}${finalSrc}`;
             }
@@ -286,7 +293,7 @@ function getLinksForCurrentTrack() {
     }) || {};
 }
 
-// === SHARE ===
+// === МОДАЛЬНОЕ ОКНО "ПОДЕЛИТЬСЯ" ===
 shareBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (!currentPlaylistId) {
@@ -312,11 +319,14 @@ shareBtn.addEventListener('click', (e) => {
 });
 
 function showLinkModal(title, options) {
+    isShareModalOpen = true; // БЛОКИРУЕМ клики по плейлистам
     closeShareModal();
+    
     const validOptions = options.filter(opt => opt.url && opt.url.trim() !== "");
 
     if (validOptions.length === 0) {
         showToast('Нет ссылок');
+        isShareModalOpen = false;
         return;
     }
 
@@ -340,11 +350,16 @@ function showLinkModal(title, options) {
     
     document.body.appendChild(modal);
     
-    modal.querySelector('.share-modal-content').addEventListener('click', e => e.stopPropagation());
+    // Блокируем всплытие на всех элементах модального окна
+    modal.querySelector('.share-modal-content').addEventListener('click', e => {
+        e.stopPropagation();
+        e.preventDefault();
+    });
     
     modal.querySelectorAll('.share-option').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
+            e.preventDefault();
             const url = this.getAttribute('data-url');
             if (url) {
                 tg.openLink(url);
@@ -355,17 +370,28 @@ function showLinkModal(title, options) {
     
     modal.querySelector('.share-close').addEventListener('click', (e) => {
         e.stopPropagation();
+        e.preventDefault();
         closeShareModal();
     });
     
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeShareModal();
+        if (e.target === modal) {
+            e.stopPropagation();
+            e.preventDefault();
+            closeShareModal();
+        }
     });
 }
 
 function closeShareModal() {
     const modal = document.querySelector('.share-modal');
-    if (modal) modal.remove();
+    if (modal) {
+        modal.remove();
+        // Разблокируем клики с небольшой задержкой, чтобы анимация/удаление завершилось
+        setTimeout(() => {
+            isShareModalOpen = false;
+        }, 300);
+    }
 }
 
 function showToast(message) {
@@ -376,7 +402,7 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 2500);
 }
 
-// === INIT ===
+// === ИНИЦИАЛИЗАЦИЯ ===
 async function initApp() {
     try {
         await loadArtistLinks();
@@ -390,3 +416,4 @@ async function initApp() {
 }
 
 initApp();
+
