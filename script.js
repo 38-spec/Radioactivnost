@@ -81,6 +81,15 @@ function setModalState(isOpen) {
         document.body.classList.remove('modal-open');
     }
 }
+function toggleAuthorSignature(show) {
+    if (authorSignature) {
+        if (show) {
+            authorSignature.classList.remove('hidden');
+        } else {
+            authorSignature.classList.add('hidden');
+        }
+    }
+}
 
 // === ОБНОВЛЕНИЕ ИКОНКИ ЦЕНТРАЛЬНОЙ КНОПКИ ===
 function updateMainPlayPauseIcon() {
@@ -218,6 +227,8 @@ function loadTrack() {
     if (progressContainer) progressContainer.style.display = 'flex';
     if (shuffleInfo) shuffleInfo.style.display = 'block';
     if (playerWrapper) playerWrapper.style.display = 'block';
+    toggleAuthorSignature(false); // Скрываем подпись при показе плеера
+
     
     updateMainPlayPauseIcon();
 }
