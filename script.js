@@ -84,9 +84,7 @@ function setModalState(open) {
     } else {
         document.body.classList.remove('modal-open');
     }
-}
-
-// === ОТРИСОВКА ПЛЕЙЛИСТОВ ===
+}// === ОТРИСОВКА ПЛЕЙЛИСТОВ (НОВАЯ ЛОГИКА) ===
 function renderPlaylists() {
     if (!playlistsGrid) return;
     
@@ -115,7 +113,6 @@ function renderPlaylists() {
             </div>
         `;
         
-        // УРОВЕНЬ 3: Локальная проверка флага
         card.addEventListener('click', (e) => {
             if (isShareModalOpen) {
                 e.stopImmediatePropagation();
@@ -129,9 +126,40 @@ function renderPlaylists() {
     });
 }
 
+// === ОБНОВЛЕНИЕ АКТИВНОГО ПЛЕЙЛИСТА (БЕЗ ПОЛНОЙ ПЕРЕРИСОВКИ) ===
+function setActivePlaylist(playlistId) {
+    if (!playlistsGrid) return;
+    
+    // Снимаем active со ВСЕХ карточек
+    const allCards = playlistsGrid.querySelectorAll('.playlist-card');
+    allCards.forEach(card => {
+        card.classList.remove('active');
+        
+        // Обновляем иконку на play
+        const iconElement = card.querySelector('.playlist-play-icon');
+        if (iconElement) {
+            iconElement.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+        }
+    });
+    
+    // Добавляем active только на нужный плейлист
+    const activeCard = playlistsGrid.querySelector(`[data-id="${playlistId}"]`);
+    if (activeCard) {
+        activeCard.classList.add('active');
+        
+        // Обновляем иконку
+        const iconElement = activeCard.querySelector('.playlist-play-icon');
+        if (iconElement) {
+            iconElement.innerHTML = isPlaying
+                ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'
+                : '<svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>';
+        }
+    }
+}
+
 // === ЛОГИКА ВОСПРОИЗВЕДЕНИЯ ===
 function handlePlaylistClick(playlistId) {
-    if (isShareModalOpen) return; // Двойная проверка
+    if (isShareModalOpen) return;
     
     const playlist = playlistsData[playlistId];
     if (!playlist || playlist.tracks.length === 0) {
@@ -148,34 +176,16 @@ function handlePlaylistClick(playlistId) {
     shuffledIndexes = createShuffledIndexes(playlist.tracks.length);
     currentTrackIndex = 0;
     
-    renderPlaylists();
+    // Сначала обновляем UI
+    setActivePlaylist(playlistId);
     loadTrack();
     playTrack();
-}
-
-function loadTrack() {
-    if (!currentPlaylistId || !playlistsData[currentPlaylistId]) return;
-    
-    const playlist = playlistsData[currentPlaylistId];
-    const track = playlist.tracks[shuffledIndexes[currentTrackIndex]];
-    
-    if (!track) return;
-    
-    audio.src = track.src;
-    currentTitle.textContent = track.title;
-    currentArtist.textContent = track.artist;
-    currentPlaylistBadge.textContent = playlist.name;
-    
-    if (nowPlaying) nowPlaying.style.display = 'flex';
-    if (controls) controls.style.display = 'flex';
-    if (progressContainer) progressContainer.style.display = 'flex';
-    if (shuffleInfo) shuffleInfo.style.display = 'block';
-    if (playerWrapper) playerWrapper.style.display = 'block';
 }
 
 function playTrack() {
     audio.play().then(() => {
         isPlaying = true;
+        // Обновляем только иконку активного плейлиста
         updateActivePlaylistIcon();
     }).catch(e => console.error('Play error:', e));
 }
@@ -199,6 +209,7 @@ function updateActivePlaylistIcon() {
         }
     }
 }
+
 
 function togglePlay() {
     if (isPlaying) pauseTrack();
