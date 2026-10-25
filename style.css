@@ -45,7 +45,7 @@ header h1 {
     font-size: 14px;
 }
 
-/* Сетка плейлистов */
+/* === СЕТКА ПЛЕЙЛИСТОВ === */
 .playlists-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -140,7 +140,7 @@ header h1 {
     50% { transform: scale(1.08); }
 }
 
-/* ФИКСИРОВАННЫЙ НИЖНИЙ ПЛЕЕР */
+/* === ФИКСИРОВАННЫЙ НИЖНИЙ ПЛЕЕР === */
 .player-wrapper {
     position: fixed;
     bottom: 0;
@@ -208,6 +208,7 @@ header h1 {
     white-space: nowrap;
 }
 
+/* === КНОПКИ УПРАВЛЕНИЯ === */
 .controls {
     display: flex;
     justify-content: center;
@@ -233,11 +234,26 @@ header h1 {
     transform: scale(0.92);
 }
 
+.control-btn svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
 .side-btn { 
     width: 56px;
     height: 56px;
     border-radius: 50%;
     background-color: var(--secondary-bg);
+}
+
+.side-btn svg {
+    display: block;
+    margin: auto;
+}
+
+.side-btn:hover {
+    background-color: #2a2a2e;
 }
 
 .main-btn {
@@ -248,6 +264,16 @@ header h1 {
     box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5);
 }
 
+.main-btn svg {
+    width: 32px;
+    height: 32px;
+}
+
+.main-btn:hover {
+    transform: scale(1.05);
+}
+
+/* === ПРОГРЕСС-БАР === */
 .progress-container {
     display: flex;
     align-items: center;
@@ -279,6 +305,7 @@ header h1 {
 
 #progress-bar::-webkit-slider-thumb {
     -webkit-appearance: none;
+    appearance: none;
     width: 14px;
     height: 14px;
     border-radius: 50%;
@@ -286,6 +313,16 @@ header h1 {
     cursor: pointer;
 }
 
+#progress-bar::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--button-color);
+    cursor: pointer;
+    border: none;
+}
+
+/* === SHUFFLE ИНДИКАТОР === */
 .shuffle-info {
     text-align: center;
     font-size: 12px;
@@ -293,6 +330,7 @@ header h1 {
     padding: 8px;
 }
 
+/* === МОДАЛЬНОЕ ОКНО SHARE === */
 .share-modal {
     position: fixed;
     top: 0;
@@ -304,7 +342,13 @@ header h1 {
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    pointer-events: auto; /* Явно включаем события */
+    pointer-events: auto;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .share-modal-content {
@@ -313,12 +357,13 @@ header h1 {
     padding: 24px;
     max-width: 90%;
     width: 400px;
-    pointer-events: auto; /* Включаем события для контента */
+    animation: slideUp 0.3s ease;
+    pointer-events: auto;
 }
 
-/* Блокируем клики на плейлистах когда модальное окно открыто */
-.share-modal ~ .app-container .playlist-card {
-    pointer-events: none;
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .share-modal-title {
@@ -345,11 +390,16 @@ header h1 {
     display: flex;
     align-items: center;
     gap: 12px;
+    transition: all 0.2s ease;
 }
 
 .share-option:hover {
     background-color: var(--button-color);
     color: white;
+}
+
+.share-option-icon {
+    font-size: 24px;
 }
 
 .share-close {
@@ -364,6 +414,11 @@ header h1 {
     cursor: pointer;
 }
 
+.share-close:hover {
+    background-color: var(--bg-color);
+}
+
+/* === TOAST УВЕДОМЛЕНИЯ === */
 .toast {
     position: fixed;
     bottom: 360px;
@@ -388,4 +443,3 @@ header h1 {
     from { opacity: 1; }
     to { opacity: 0; }
 }
-
