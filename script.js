@@ -19,7 +19,7 @@ let playlistsData = {
     2: { name: "Classic Wave", spotifyUrl: "https://open.spotify.com/playlist/4i0gEbdeQ0je5ANjmQCuGA", tracks: [] },
     3: { name: "New Wave", spotifyUrl: "https://open.spotify.com/playlist/3XOU9kzckIsCcY02opnNf4", tracks: [] },
     4: { name: "Chill Wave", spotifyUrl: "https://open.spotify.com/playlist/1fQs2mLFXwQu9UySQSpaCE", tracks: [] },
-    5: { name: "Beats Wave", spotifyUrl: "https://open.spotify.com/playlist/0cdMXjpnrWaWM7kygf6IZX", tracks: [] }
+    5: { name: "Instrumental Wave", spotifyUrl: "https://open.spotify.com/playlist/0cdMXjpnrWaWM7kygf6IZX", tracks: [] }
 };
 
 let currentPlaylistId = null;
